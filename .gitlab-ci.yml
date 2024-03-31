@@ -22,6 +22,12 @@ before_script:
 
 build:
   stage: test-and-build
+  artifacts:
+    untracked: false
+    when: on_success
+    expire_in: "30 days"
+    paths:
+      - "release/"
   script:
     - dotnet build ${MAIN_PROJECT} -c Release -p:PackageVersion=${PACKAGE_VERSION}
     - dotnet test ${TEST_PROJECT} --filter "Category=SnapshotTest" -p:PackageVersion=${PACKAGE_VERSION}
