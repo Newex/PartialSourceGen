@@ -16,6 +16,7 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <NoPackageAnalysis>true</NoPackageAnalysis>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
     <ItemGroup>
@@ -29,6 +30,10 @@
 
     <ItemGroup>
       <InternalsVisibleTo Include="PartialSourceGen.Tests" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="..\README.md" Pack="true" PackagePath="\" />
     </ItemGroup>
 
 </Project>
