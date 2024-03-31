@@ -10,8 +10,8 @@
     <Description>Generate partial equivalent entity with optional properties</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);NU1803</NoWarn>
-    <PackageProjectUrl>https://gitlab.digify/opensource/partial-sourcegen</PackageProjectUrl>
-    <RepositoryUrl>https://gitlab.digify/opensource/partial-sourcegen</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/Newex/PartialSourceGen</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Newex/PartialSourceGen</RepositoryUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
