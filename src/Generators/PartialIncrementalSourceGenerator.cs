@@ -27,8 +27,6 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
 
     """;
 
-    // todo: Perhaps remove the constructors! and only use properties!
-    // easier and less error prone to handle in code
     private const string SourceAttribute = """
 
     using System;
