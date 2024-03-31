@@ -1,0 +1,66 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <AssemblyName>PartialSourceGen.Tests</AssemblyName>
+    <RootNamespace>PartialSourceGen.Tests</RootNamespace>
+    <NoWarn>RCS1084;IDE0030</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Bogus" Version="35.5.0" />
+    <PackageReference Include="coverlet.collector" Version="6.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="FluentAssertions" Version="6.12.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.9.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+    <PackageReference Include="NSubstitute" Version="5.1.0" />
+    <PackageReference Include="Verify.SourceGenerators" Version="2.2.0" />
+    <PackageReference Include="Verify.XUnit" Version="23.6.0" />
+    <PackageReference Include="xunit" Version="2.7.0" />
+    <PackageReference Include="xunit.categories" Version="2.0.8" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.7">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\src\partial.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="ClassSnapshotTests.Simple_record_without_summary_or_required_properties.received.txt">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <DependentUpon>ClassSnapshotTests.cs</DependentUpon>
+    </None>
+    <None Update="ClassSnapshotTests.Simple_record_without_summary_or_required_properties.verified.txt">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <DependentUpon>ClassSnapshotTests.cs</DependentUpon>
+    </None>
+    <None Update="StructSnapshotTests.Simple_record_without_summary_or_required_properties.received.txt">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <DependentUpon>StructSnapshotTests.cs</DependentUpon>
+    </None>
+    <None Update="StructSnapshotTests.Simple_record_without_summary_or_required_properties.verified.txt">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <DependentUpon>StructSnapshotTests.cs</DependentUpon>
+    </None>
+    <None Update="RecordSnapshotTests.Simple_record_without_summary_or_required_properties.verified.txt">
+      <DependentUpon>RecordSnapshotTests.cs</DependentUpon>
+    </None>
+    <None Update="RecordSnapshotTests.Simple_record_without_summary_or_required_properties.received.txt">
+      <DependentUpon>RecordSnapshotTests.cs</DependentUpon>
+    </None>
+  </ItemGroup>
+
+</Project>
