@@ -24,7 +24,7 @@ build:
   stage: test-and-build
   script:
     - dotnet build ${MAIN_PROJECT} -c Release -p:PackageVersion=${PACKAGE_VERSION}
-    - dotnet test ${TEST_PROJECT} --filter "Category=UnitTest" -p:PackageVersion=${PACKAGE_VERSION}
+    - dotnet test ${TEST_PROJECT} --filter "Category=SnapshotTest" -p:PackageVersion=${PACKAGE_VERSION}
     - dotnet pack ${MAIN_PROJECT} -c Release -p:PackageVersion=${PACKAGE_VERSION} -o release
 
 deploy_gitlab:
