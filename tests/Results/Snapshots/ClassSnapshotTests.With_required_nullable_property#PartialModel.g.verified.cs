@@ -10,7 +10,7 @@
 using PartialSourceGen;
 
 namespace MySpace;
-public record PartialModel
+public class PartialModel
 {
-    public required string Name { get; set; }
+    public required string? Name { get; set; }
 }

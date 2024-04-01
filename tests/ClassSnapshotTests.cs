@@ -81,6 +81,27 @@ public class ClassSnapshotTests
     }
 
     [Fact]
+    public Task With_required_nullable_property()
+    {
+        var source = """
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        [Partial(IncludeRequiredProperties = true)]
+        public class Model
+        {
+            public required string? Name { get; set; }
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        return Verify(runResult).UseDirectory("Results/Snapshots");
+    }
+
+    [Fact]
     public Task Custom_summary()
     {
         var source = """
