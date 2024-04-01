@@ -197,4 +197,30 @@ public class ClassSnapshotTests
                                   .GetSecondResult();
         return Verify(runResult).UseDirectory("Results/Snapshots");
     }
+
+    [Fact]
+    public Task With_arrow_property()
+    {
+        // a.k.a. expression-bodied member
+        var source = """
+        using System;
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        /// <summary>
+        /// An entity model
+        /// </summary>
+        [Partial]
+        public class Model
+        {
+            public string Value => "Some value";
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        return Verify(runResult).UseDirectory("Results/Snapshots");
+    }
 }
