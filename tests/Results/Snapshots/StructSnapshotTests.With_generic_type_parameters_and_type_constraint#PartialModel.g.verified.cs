@@ -14,7 +14,6 @@ namespace MySpace;
 /// An entity model
 /// </summary>
 public struct PartialModel<T>
-    where T : notnull
 {
     public T? Name { get; set; }
 }
