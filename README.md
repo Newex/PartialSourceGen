@@ -149,3 +149,4 @@ That required properties can be set either via using the keyword `required` or a
 - [ ] Does this work in a large project? Using `IIncrementalSourceGenerator` should be faster for the IDE? I don't know.
 - [ ] Somehow add a custom method to the generated partial entity that can create the actual model with default values for the missing properties.
 - [ ] What about conflicting classes or files? Not currently handled
+- [ ] Currently does not check if `Required` attribute comes from any particular namespace.
