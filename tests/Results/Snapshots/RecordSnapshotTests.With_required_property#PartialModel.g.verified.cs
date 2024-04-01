@@ -12,5 +12,8 @@ using PartialSourceGen;
 namespace MySpace;
 public record PartialModel
 {
+    /// <summary>
+    /// The name
+    /// </summary>
     public required string Name { get; set; }
 }
