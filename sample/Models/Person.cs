@@ -1,4 +1,5 @@
 ﻿using PartialSourceGen;
+using System.ComponentModel.DataAnnotations;
 
 namespace Sample.Models;
 
@@ -12,6 +13,7 @@ public readonly record struct Person
     {
     }
 
+    [Required]
     public required int ID { get; init; }
 
     /// <summary>
