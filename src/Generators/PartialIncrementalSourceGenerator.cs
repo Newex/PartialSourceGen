@@ -217,13 +217,15 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 return 3; // Other member types can be handled accordingly
         })];
 
+        var excludeNotNullConstraint = node.DescendantNodes().OfType<TypeParameterConstraintClauseSyntax>().Where(cs => cs.Constraints.Any(c => c.DescendantNodes().OfType<IdentifierNameSyntax>().Any(n => !n.Identifier.ValueText.Equals("notnull"))));
+
         SyntaxNode? partialType = node switch
         {
             RecordDeclarationSyntax record => SyntaxFactory
                 .RecordDeclaration(record.Kind(), record.Keyword, name)
                 .WithClassOrStructKeyword(record.ClassOrStructKeyword)
                 .WithModifiers(record.Modifiers)
-                .WithConstraintClauses(record.ConstraintClauses)
+                .WithConstraintClauses(SyntaxFactory.List(excludeNotNullConstraint))
                 .WithTypeParameterList(record.TypeParameterList)
                 .WithOpenBraceToken(record.OpenBraceToken)
                 .AddMembers([.. members])
@@ -232,7 +234,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 .StructDeclaration(name)
                 .WithModifiers(val.Modifiers)
                 .WithTypeParameterList(val.TypeParameterList)
-                .WithConstraintClauses(val.ConstraintClauses)
+                .WithConstraintClauses(SyntaxFactory.List(excludeNotNullConstraint))
                 .WithOpenBraceToken(val.OpenBraceToken)
                 .AddMembers([.. members])
                 .WithCloseBraceToken(val.CloseBraceToken),
@@ -240,7 +242,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 .ClassDeclaration(name)
                 .WithModifiers(val.Modifiers)
                 .WithTypeParameterList(val.TypeParameterList)
-                .WithConstraintClauses(val.ConstraintClauses)
+                .WithConstraintClauses(SyntaxFactory.List(excludeNotNullConstraint))
                 .WithOpenBraceToken(val.OpenBraceToken)
                 .AddMembers([.. members])
                 .WithCloseBraceToken(val.CloseBraceToken),
