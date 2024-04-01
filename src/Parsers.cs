@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace PartialSourceGen;
@@ -75,5 +76,81 @@ public static class Parsers
             .SingleOrDefault();
 
         return include is not null;
+    }
+
+    internal static bool PropertyMemberReferences(this PropertyDeclarationSyntax propertyDeclaration, SyntaxNode node, out Dictionary<string, MemberDeclarationSyntax>? result)
+    {
+        // var accessor = propertyDeclaration.AccessorList?.Accessors.Where(a => a.IsKind(accessorKind)).FirstOrDefault();
+        // if (accessor is null)
+        // {
+        //     result = null;
+        //     return false;
+        // }
+
+        // var returnStatement = accessor.DescendantNodes().OfType<ReturnStatementSyntax>().FirstOrDefault();
+        // var expressionBody = accessor.DescendantNodes().OfType<ArrowExpressionClauseSyntax>().FirstOrDefault();
+
+        // if (returnStatement is null && expressionBody is null)
+        // {
+        //     result = null;
+        //     return false;
+        // }
+
+        var members = propertyDeclaration.DescendantNodes().OfType<IdentifierNameSyntax>();
+
+        if (members is null)
+        {
+            result = null;
+            return false;
+        }
+
+        // The members are:
+        result = [];
+        foreach (var member in members)
+        {
+            GetMembers(node, member, ref result);
+        }
+
+        return result.Any();
+    }
+
+    private static void GetMembers(SyntaxNode node, IdentifierNameSyntax ident, ref Dictionary<string, MemberDeclarationSyntax> result)
+    {
+        var current = node.DescendantNodes()
+                          .OfType<FieldDeclarationSyntax>()
+                          .SingleOrDefault(f => f.Declaration.Variables.Any(v => v.Identifier.ValueText.Equals(ident.Identifier.ValueText)));
+
+        if (current is not null)
+        {
+            var name = ident.Identifier.ValueText;
+            result.TryAdd(name, current);
+            return;
+        }
+
+        var method = node.DescendantNodes()
+            .OfType<MethodDeclarationSyntax>()
+            .SingleOrDefault(m => m.Identifier.ValueText.Equals(ident.Identifier.ValueText));
+
+        if (method is not null)
+        {
+            // Add method
+            var name = method.Identifier.ValueText;
+            result.TryAdd(name, method);
+
+            // Check method locals for field refs
+            var locals = method.DescendantNodes().OfType<IdentifierNameSyntax>();
+            foreach (var local in locals)
+            {
+                GetMembers(node, local, ref result);
+            }
+        }
+    }
+
+    internal static void TryAdd(this Dictionary<string, MemberDeclarationSyntax> source, string key, MemberDeclarationSyntax value)
+    {
+        if (source is not null && !source.ContainsKey(key))
+        {
+            source.Add(key, value);
+        }
     }
 }

@@ -197,4 +197,85 @@ public class ClassSnapshotTests
                                   .GetSecondResult();
         return Verify(runResult).UseDirectory("Results/Snapshots");
     }
+
+    [Fact]
+    public Task With_arrow_property()
+    {
+        // a.k.a. expression-bodied member
+        var source = """
+        using System;
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        /// <summary>
+        /// An entity model
+        /// </summary>
+        [Partial]
+        public class Model
+        {
+            private string? other;
+
+            public string? Value => other;
+
+            public string NonNullValue => "Value";
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        return Verify(runResult).UseDirectory("Results/Snapshots");
+    }
+
+    [Fact]
+    public Task With_nested_field_references()
+    {
+        var source = """
+        using System;
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        /// <summary>
+        /// An entity model
+        /// </summary>
+        [Partial]
+        public class Model
+        {
+            private string? other;
+            private string? firstLevel;
+            private string secondLevel = "DefaultValue";
+
+            public string Value
+            {
+                get
+                {
+                    if (other is not null)
+                        return other;
+
+                    return First();
+                }
+            }
+
+            private string? First()
+            {
+                if (firstLevel is not null)
+                    return firstLevel;
+
+                return Second();
+            }
+
+            private string Second()
+            {
+                return secondLevel;
+            }
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        return Verify(runResult).UseDirectory("Results/Snapshots");
+    }
 }
