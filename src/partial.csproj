@@ -17,6 +17,8 @@
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageTags>Source Generator;Partial properties;Optional partial properties</PackageTags>
   </PropertyGroup>
 
     <ItemGroup>
@@ -34,6 +36,7 @@
 
     <ItemGroup>
       <None Include="..\README.md" Pack="true" PackagePath="\" />
+      <None Include="..\LICENSE" Pack="true" PackagePath="\"/>
     </ItemGroup>
 
 </Project>
