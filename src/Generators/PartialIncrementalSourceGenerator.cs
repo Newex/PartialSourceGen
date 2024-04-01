@@ -151,11 +151,27 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             }
 
             // new optional property
-            var optionalProp = SyntaxFactory
-                    .PropertyDeclaration(propertyType, propName)
-                    .WithModifiers(SyntaxFactory.TokenList(modifiers))
-                    .WithLeadingTrivia(prop.GetLeadingTrivia())
-                    .WithAccessorList(prop.AccessorList);
+            PropertyDeclarationSyntax optionalProp;
+
+            if (prop.ExpressionBody is null)
+            {
+                optionalProp = SyntaxFactory
+                        .PropertyDeclaration(propertyType, propName)
+                        .WithModifiers(SyntaxFactory.TokenList(modifiers))
+                        .WithLeadingTrivia(prop.GetLeadingTrivia())
+                        .WithAccessorList(prop.AccessorList);
+            }
+            else
+            {
+                optionalProp = SyntaxFactory
+                        .PropertyDeclaration(propertyType, propName)
+                        .WithLeadingTrivia(prop.GetLeadingTrivia())
+                        .WithModifiers(SyntaxFactory.TokenList(modifiers))
+                        .WithAccessorList(prop.AccessorList)
+                        .WithExpressionBody(prop.ExpressionBody)
+                        .WithSemicolonToken(prop.SemicolonToken);
+            }
+
 
             optionalProps.Add(optionalProp);
         }
