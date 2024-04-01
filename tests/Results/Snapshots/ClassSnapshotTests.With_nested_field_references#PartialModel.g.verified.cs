@@ -17,6 +17,27 @@ namespace MySpace;
 public class PartialModel
 {
     private string? other;
-    public string? Value => other;
-    public string NonNullValue => "Value";
+    private string? firstLevel;
+    private string secondLevel = "DefaultValue";
+    public string Value
+    {
+        get
+        {
+            if (other is not null)
+                return other;
+            return First();
+        }
+    }
+
+    private string? First()
+    {
+        if (firstLevel is not null)
+            return firstLevel;
+        return Second();
+    }
+
+    private string Second()
+    {
+        return secondLevel;
+    }
 }
