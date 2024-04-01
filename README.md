@@ -133,8 +133,11 @@ PartialModel model = new()
 };
 
 // Prints: Model ID: 123
-Console.WriteLine("Model ID: {0}", model.ID.GetValueOrDefault());
+Console.WriteLine("Model ID: {0}", model.ID);
 ```
+
+**Note:**  
+That required properties can be set either via using the keyword `required` or an attribute `Required`. When including properties that are marked as required, the property will not be made nullable. They will retain their original property type, thus if the property was nullable the required property will also be nullable.
 
 # References
 
