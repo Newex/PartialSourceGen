@@ -118,8 +118,11 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
 
         var (name, summaryTxt, includeRequired, root, node, originalProps) = source.GetValueOrDefault();
         List<PropertyDeclarationSyntax> optionalProps = [];
+        Dictionary<string, MemberDeclarationSyntax> propMembers = [];
+
         foreach (var prop in originalProps)
         {
+            var isExpression = prop.ExpressionBody is not null;
             TypeSyntax propertyType;
             if (prop.Type is NullableTypeSyntax nts)
             {
@@ -127,35 +130,42 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             }
             else
             {
-                propertyType = SyntaxFactory.NullableType(prop.Type);
+                var hasRequiredAttribute = prop.AttributeLists.SelectMany(attrs => attrs.Attributes.Select(a => a.Name.GetText().ToString()))
+                                                   .Any(s => s.StartsWith("Required", System.StringComparison.OrdinalIgnoreCase));
+                var hasRequired = prop.Modifiers.Any(m => m.IsKind(SyntaxKind.RequiredKeyword));
+                var onlyGetter = !prop.AccessorList?.Accessors.Any(a => a.IsKind(SyntaxKind.SetAccessorDeclaration)) ?? false;
+                var keepType = hasRequired || hasRequiredAttribute || isExpression || onlyGetter;
+
+                if (keepType)
+                {
+                    // Retain original type when
+                    // 1. has Required attribute
+                    // 2. has required keyword
+                    // 3. is an expression body property
+                    // 4. is an only getter property
+                    propertyType = prop.Type;
+                }
+                else
+                {
+                    propertyType = SyntaxFactory.NullableType(prop.Type);
+                }
             }
 
             var propName = prop.Identifier.ValueText.Trim();
-
             IEnumerable<SyntaxToken> modifiers = prop.Modifiers;
+
             if (!includeRequired)
             {
                 // Remove the required keyword
                 modifiers = prop.Modifiers.Where(m => !m.IsKind(SyntaxKind.RequiredKeyword));
             }
-            else
+
+            // A candidate for the optional property
+            PropertyDeclarationSyntax candidateProp;
+
+            if (!isExpression)
             {
-                var hasRequiredAttribute = prop.AttributeLists.SelectMany(attrs => attrs.Attributes.Select(a => a.Name.GetText().ToString()))
-                                                   .Any(s => s.StartsWith("Required", System.StringComparison.OrdinalIgnoreCase));
-
-                if (prop.Modifiers.Any(m => m.IsKind(SyntaxKind.RequiredKeyword)) || hasRequiredAttribute)
-                {
-                    // Retain original type
-                    propertyType = prop.Type;
-                }
-            }
-
-            // new optional property
-            PropertyDeclarationSyntax optionalProp;
-
-            if (prop.ExpressionBody is null)
-            {
-                optionalProp = SyntaxFactory
+                candidateProp = SyntaxFactory
                         .PropertyDeclaration(propertyType, propName)
                         .WithModifiers(SyntaxFactory.TokenList(modifiers))
                         .WithLeadingTrivia(prop.GetLeadingTrivia())
@@ -163,7 +173,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             }
             else
             {
-                optionalProp = SyntaxFactory
+                candidateProp = SyntaxFactory
                         .PropertyDeclaration(propertyType, propName)
                         .WithLeadingTrivia(prop.GetLeadingTrivia())
                         .WithModifiers(SyntaxFactory.TokenList(modifiers))
@@ -172,13 +182,41 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                         .WithSemicolonToken(prop.SemicolonToken);
             }
 
+            // Get all field and method references
+            var hasPropertyMembers = prop.PropertyMemberReferences(node, out var constructPropMembers);
+            if (hasPropertyMembers)
+            {
+                foreach (var propertyMember in constructPropMembers!)
+                {
+                    propMembers.TryAdd(propertyMember.Key, propertyMember.Value);
+                }
+            }
 
-            optionalProps.Add(optionalProp);
+            optionalProps.Add(candidateProp);
         }
 
         var leadingTrivia = node.GetLeadingTrivia().FirstOrDefault(trivia => trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia));
 
-        var members = optionalProps.ToArray();
+        List<MemberDeclarationSyntax> members = [.. optionalProps];
+
+        if (propMembers.Any())
+        {
+            members.AddRange(propMembers.Values);
+        }
+
+        // Sort members
+        members = [.. members.OrderBy(declaration =>
+        {
+            if (declaration is FieldDeclarationSyntax)
+                return 0; // Field comes first
+            else if (declaration is PropertyDeclarationSyntax)
+                return 1; // Property comes second
+            else if (declaration is MethodDeclarationSyntax)
+                return 2; // Method comes third
+            else
+                return 3; // Other member types can be handled accordingly
+        })];
+
         SyntaxNode? partialType = node switch
         {
             RecordDeclarationSyntax record => SyntaxFactory
@@ -188,7 +226,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 .WithConstraintClauses(record.ConstraintClauses)
                 .WithTypeParameterList(record.TypeParameterList)
                 .WithOpenBraceToken(record.OpenBraceToken)
-                .AddMembers(members)
+                .AddMembers([.. members])
                 .WithCloseBraceToken(record.CloseBraceToken),
             StructDeclarationSyntax val => SyntaxFactory
                 .StructDeclaration(name)
@@ -196,7 +234,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 .WithTypeParameterList(val.TypeParameterList)
                 .WithConstraintClauses(val.ConstraintClauses)
                 .WithOpenBraceToken(val.OpenBraceToken)
-                .AddMembers(members)
+                .AddMembers([.. members])
                 .WithCloseBraceToken(val.CloseBraceToken),
             ClassDeclarationSyntax val => SyntaxFactory
                 .ClassDeclaration(name)
@@ -204,7 +242,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 .WithTypeParameterList(val.TypeParameterList)
                 .WithConstraintClauses(val.ConstraintClauses)
                 .WithOpenBraceToken(val.OpenBraceToken)
-                .AddMembers(members)
+                .AddMembers([.. members])
                 .WithCloseBraceToken(val.CloseBraceToken),
             _ => null
         };
