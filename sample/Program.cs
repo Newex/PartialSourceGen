@@ -8,4 +8,4 @@ PartialPerson partialPerson = new()
     LastName = "Doe"
 };
 
-Console.WriteLine("Hello {0} {1}", partialPerson.FirstName, partialPerson.LastName);
+Console.WriteLine("Hello {0} {1} with ID: {2}", partialPerson.FirstName, partialPerson.LastName, partialPerson.ID);

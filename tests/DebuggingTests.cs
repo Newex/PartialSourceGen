@@ -23,6 +23,7 @@ public class DebuggingTests
         var partialGenerator = new PartialIncrementalSourceGenerator();
         var code = CSharpSyntaxTree.ParseText("""
             using System;
+            using System.ComponentModel.DataAnnotations;
             using PartialSourceGen;
 
             namespace Sample.Models;
@@ -30,7 +31,7 @@ public class DebuggingTests
             /// <summary>
             /// A person
             /// </summary>
-            [Obsolete, Partial(IncludeRequiredProperties = false]
+            [Obsolete, Partial(IncludeRequiredProperties = true]
             public class Person<T>
             where T : notnull
             {
@@ -39,7 +40,8 @@ public class DebuggingTests
                 /// <summary>
                 /// The Person ID
                 /// </summary>
-                public required int ID { get; init; }
+                [Required]
+                public int ID { get; init; }
                 public string FirstName { get; init; } = string.Empty;
                 public string? LastName { get; init; }
 
@@ -50,6 +52,7 @@ public class DebuggingTests
             """);
 
         var result = GeneratorDebugger.RunDebugging([code], [partialGenerator]);
-        Debug.WriteLine(result.GeneratedTrees.Length);
+        var generated = result.GeneratedTrees[1].GetText().ToString();
+        Debug.WriteLine(generated);
     }
 }

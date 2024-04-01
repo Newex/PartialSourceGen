@@ -12,5 +12,5 @@ using PartialSourceGen;
 namespace MySpace;
 public struct PartialModel
 {
-    public required string? Name { get; set; }
+    public required string Name { get; set; }
 }

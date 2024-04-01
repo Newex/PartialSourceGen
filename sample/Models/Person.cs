@@ -1,18 +1,20 @@
 ﻿using PartialSourceGen;
+using System.ComponentModel.DataAnnotations;
 
 namespace Sample.Models;
 
 /// <summary>
 /// A person
 /// </summary>
-[Partial(IncludeRequiredProperties = false, Summary = "A partial person")]
+[Partial(IncludeRequiredProperties = true, Summary = "A partial person")]
 public readonly record struct Person
 {
     public Person()
     {
     }
 
-    public required int ID { get; init; }
+    [Required]
+    public int ID { get; init; }
 
     /// <summary>
     /// The first name

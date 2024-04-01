@@ -121,14 +121,14 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
         List<PropertyDeclarationSyntax> optionalProps = [];
         foreach (var prop in originalProps)
         {
-            NullableTypeSyntax nullableType;
+            TypeSyntax propertyType;
             if (prop.Type is NullableTypeSyntax nts)
             {
-                nullableType = nts;
+                propertyType = nts;
             }
             else
             {
-                nullableType = SyntaxFactory.NullableType(prop.Type);
+                propertyType = SyntaxFactory.NullableType(prop.Type);
             }
 
             var propName = prop.Identifier.ValueText.Trim();
@@ -139,10 +139,21 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 // Remove the required keyword
                 modifiers = prop.Modifiers.Where(m => !m.IsKind(SyntaxKind.RequiredKeyword));
             }
+            else
+            {
+                var hasRequiredAttribute = prop.AttributeLists.SelectMany(attrs => attrs.Attributes.Select(a => a.Name.GetText().ToString()))
+                                                   .Any(s => string.Equals("Required", s, System.StringComparison.OrdinalIgnoreCase));
+
+                if (prop.Modifiers.Any(m => m.IsKind(SyntaxKind.RequiredKeyword)) || hasRequiredAttribute)
+                {
+                    // Retain original type
+                    propertyType = prop.Type;
+                }
+            }
 
             // new optional property
             var optionalProp = SyntaxFactory
-                    .PropertyDeclaration(nullableType, propName)
+                    .PropertyDeclaration(propertyType, propName)
                     .WithModifiers(SyntaxFactory.TokenList(modifiers))
                     .WithAccessorList(prop.AccessorList);
 

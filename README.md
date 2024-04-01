@@ -133,8 +133,11 @@ PartialModel model = new()
 };
 
 // Prints: Model ID: 123
-Console.WriteLine("Model ID: {0}", model.ID.GetValueOrDefault());
+Console.WriteLine("Model ID: {0}", model.ID);
 ```
+
+**Note:**  
+That required properties can be set either via using the keyword `required` or an attribute `Required`. When including properties that are marked as required, the property will not be made nullable. They will retain their original property type, thus if the property was nullable the required property will also be nullable.
 
 # References
 
@@ -146,3 +149,4 @@ Console.WriteLine("Model ID: {0}", model.ID.GetValueOrDefault());
 - [ ] Does this work in a large project? Using `IIncrementalSourceGenerator` should be faster for the IDE? I don't know.
 - [ ] Somehow add a custom method to the generated partial entity that can create the actual model with default values for the missing properties.
 - [ ] What about conflicting classes or files? Not currently handled
+- [ ] Currently does not check if `Required` attribute comes from any particular namespace.
