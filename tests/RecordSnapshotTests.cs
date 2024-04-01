@@ -70,6 +70,9 @@ public class RecordSnapshotTests
         [Partial(IncludeRequiredProperties = true)]
         public record Model
         {
+            /// <summary>
+            /// The name
+            /// </summary>
             public required string Name { get; set; }
         }
         """;

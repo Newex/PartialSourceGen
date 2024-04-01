@@ -39,9 +39,14 @@ public class DebuggingTests
 
                 /// <summary>
                 /// The Person ID
+                /// Newline xml comment
                 /// </summary>
                 [Required]
                 public int ID { get; init; }
+
+                /// <summary>
+                /// The first name
+                /// </summary>
                 public string FirstName { get; init; } = string.Empty;
                 public string? LastName { get; init; }
 

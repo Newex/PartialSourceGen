@@ -7,7 +7,7 @@
     <AssemblyName>PartialSourceGen</AssemblyName>
     <Authors>Johnny Kristian Moeberg Sørensen</Authors>
     <RootNamespace>PartialSourceGen</RootNamespace>
-    <Description>Generate partial equivalent entity with optional properties</Description>
+    <Description>Makes all properties nullable just like in typescript utility Partial. Generate partial equivalent entity with optional nullable properties.</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);NU1803</NoWarn>
     <PackageProjectUrl>https://github.com/Newex/PartialSourceGen</PackageProjectUrl>
@@ -18,7 +18,7 @@
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <PackageTags>Source Generator;Partial properties;Optional partial properties</PackageTags>
+    <PackageTags>source generator partial optional properties</PackageTags>
   </PropertyGroup>
 
     <ItemGroup>
