@@ -6,7 +6,7 @@ namespace Sample.Models;
 /// <summary>
 /// A person
 /// </summary>
-[Partial(IncludeRequiredProperties = false, Summary = "A partial person")]
+[Partial(IncludeRequiredProperties = true, Summary = "A partial person")]
 public readonly record struct Person
 {
     public Person()
@@ -14,7 +14,7 @@ public readonly record struct Person
     }
 
     [Required]
-    public required int ID { get; init; }
+    public int ID { get; init; }
 
     /// <summary>
     /// The first name
