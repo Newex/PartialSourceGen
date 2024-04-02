@@ -26,7 +26,7 @@ public readonly record struct Person
     /// </summary>
     public string? LastName { get; init; }
 
-    public string Email
+    public static string Email
     {
         get
         {
