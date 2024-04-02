@@ -149,6 +149,7 @@ This source generator will do the following:
     - Is only a getter
     - Is an expression bodied property (only getter)
     - If any of the above conditions holds true, the original type will be unchanged.
+- Any methods or fields that are referenced from a property will be included in the partial class
 
 # References
 
