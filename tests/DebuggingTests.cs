@@ -48,7 +48,7 @@ public class DebuggingTests
                 /// The first name
                 /// </summary>
                 public string FirstName { get; init; } = string.Empty;
-                public string? LastName { get; init; }
+                public string Value => "The value is here";
 
                 public void SomeMethod()
                 {

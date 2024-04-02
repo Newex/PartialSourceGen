@@ -25,4 +25,12 @@ public readonly record struct Person
     /// The last name
     /// </summary>
     public string? LastName { get; init; }
+
+    public string Email
+    {
+        get
+        {
+            return "MyEmail";
+        }
+    }
 }

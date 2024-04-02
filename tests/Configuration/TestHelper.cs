@@ -27,6 +27,8 @@ public static class TestHelper
 
     public static Target GetSecondResult(this GeneratorDriverRunResult result)
     {
+        // Usually the first result will be the PartialAttribute.g.cs code.
+        // The 2nd result will be the tested generated code.
         var source = result.Results[0].GeneratedSources[1].SourceText.ToString();
         var name = result.Results[0].GeneratedSources[1].HintName;
         return new("cs", source, Path.GetFileNameWithoutExtension(name));

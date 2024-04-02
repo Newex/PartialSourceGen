@@ -7,13 +7,37 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 #nullable enable
+using System;
 using PartialSourceGen;
 
 namespace MySpace;
 /// <summary>
 /// An entity model
 /// </summary>
-public class PartialModel<T>
+public class PartialModel
 {
-    public T? Name { get; set; }
+    private string? other;
+    private string? firstLevel;
+    private string secondLevel = "DefaultValue";
+    public string Value
+    {
+        get
+        {
+            if (other is not null)
+                return other;
+            return First();
+        }
+    }
+
+    private string? First()
+    {
+        if (firstLevel is not null)
+            return firstLevel;
+        return Second();
+    }
+
+    private string Second()
+    {
+        return secondLevel;
+    }
 }

@@ -7,13 +7,16 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 #nullable enable
+using System;
 using PartialSourceGen;
 
 namespace MySpace;
 /// <summary>
 /// An entity model
 /// </summary>
-public class PartialModel<T>
+public class PartialModel
 {
-    public T? Name { get; set; }
+    private string? other;
+    public string? Value => other;
+    public string NonNullValue => "Value";
 }
