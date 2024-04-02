@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using PartialSourceGen.Builders;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -119,6 +120,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
         var (name, summaryTxt, includeRequired, root, node, originalProps) = source.GetValueOrDefault();
         List<PropertyDeclarationSyntax> optionalProps = [];
         Dictionary<string, MemberDeclarationSyntax> propMembers = [];
+        var hasPropertyInitializer = false;
 
         foreach (var prop in originalProps)
         {
@@ -180,6 +182,14 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                         .WithAccessorList(prop.AccessorList)
                         .WithExpressionBody(prop.ExpressionBody)
                         .WithSemicolonToken(prop.SemicolonToken);
+
+            }
+
+            if (prop.Initializer != null)
+            {
+                candidateProp = candidateProp
+                    .WithInitializer(prop.Initializer)
+                    .WithSemicolonToken (prop.SemicolonToken);
             }
 
             // Get all field and method references
@@ -192,10 +202,9 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 }
             }
 
+            hasPropertyInitializer = hasPropertyInitializer || prop.Initializer is not null;
             optionalProps.Add(candidateProp);
         }
-
-        var leadingTrivia = node.GetLeadingTrivia().FirstOrDefault(trivia => trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia));
 
         List<MemberDeclarationSyntax> members = [.. optionalProps];
 
@@ -228,16 +237,20 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 .WithConstraintClauses(SyntaxFactory.List(excludeNotNullConstraint))
                 .WithTypeParameterList(record.TypeParameterList)
                 .WithOpenBraceToken(record.OpenBraceToken)
+                .IncludeConstructorIfStruct(record, hasPropertyInitializer, propMembers)
                 .AddMembers([.. members])
-                .WithCloseBraceToken(record.CloseBraceToken),
+                .WithCloseBraceToken(record.CloseBraceToken)
+                .WithSummary(record, summaryTxt),
             StructDeclarationSyntax val => SyntaxFactory
                 .StructDeclaration(name)
                 .WithModifiers(val.Modifiers)
                 .WithTypeParameterList(val.TypeParameterList)
                 .WithConstraintClauses(SyntaxFactory.List(excludeNotNullConstraint))
                 .WithOpenBraceToken(val.OpenBraceToken)
+                .IncludeConstructorOnInitializer(val, hasPropertyInitializer, propMembers)
                 .AddMembers([.. members])
-                .WithCloseBraceToken(val.CloseBraceToken),
+                .WithCloseBraceToken(val.CloseBraceToken)
+                .WithSummary(val, summaryTxt),
             ClassDeclarationSyntax val => SyntaxFactory
                 .ClassDeclaration(name)
                 .WithModifiers(val.Modifiers)
@@ -245,7 +258,8 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 .WithConstraintClauses(SyntaxFactory.List(excludeNotNullConstraint))
                 .WithOpenBraceToken(val.OpenBraceToken)
                 .AddMembers([.. members])
-                .WithCloseBraceToken(val.CloseBraceToken),
+                .WithCloseBraceToken(val.CloseBraceToken)
+                .WithSummary(val, summaryTxt),
             _ => null
         };
 
@@ -254,23 +268,9 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(summaryTxt))
-        {
-            partialType = partialType.WithLeadingTrivia(partialType.GetLeadingTrivia().InsertRange(0, [leadingTrivia]));
-        }
-        else
-        {
-            var txt = "/// <summary>\n" + @"/// " + summaryTxt + "\n" + "/// </summary>\n";
-            var summaryNode = SyntaxFactory.TriviaList(SyntaxFactory.ParseLeadingTrivia(txt)).Insert(0, SyntaxFactory.CarriageReturnLineFeed);
-            partialType = partialType.WithLeadingTrivia(summaryNode);
-        }
-
-        var nullableDirective = SyntaxFactory.NullableDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.EnableKeyword), true);
-        var nullableTrivia = SyntaxFactory.Trivia(nullableDirective);
-
         var newRoot = root
             .ReplaceNode(node, partialType)
-            .WithLeadingTrivia(nullableTrivia)
+            .WithNullableEnableDirective()
             .NormalizeWhitespace();
 
         var newTree = SyntaxFactory.SyntaxTree(newRoot, root.SyntaxTree.Options);
