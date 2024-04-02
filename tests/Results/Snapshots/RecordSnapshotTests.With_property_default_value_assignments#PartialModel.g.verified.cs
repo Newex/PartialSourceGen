@@ -16,5 +16,5 @@ namespace MySpace;
 public record PartialModel
 {
     public string? Name { get; set; } = string.Empty;
-    public bool Value { get; }
+    public bool? Value { get; }
 }

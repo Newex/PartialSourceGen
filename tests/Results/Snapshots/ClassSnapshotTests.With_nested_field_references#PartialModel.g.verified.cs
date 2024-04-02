@@ -19,7 +19,7 @@ public class PartialModel
     private string? other;
     private string? firstLevel;
     private string secondLevel = "DefaultValue";
-    public string Value
+    public string? Value
     {
         get
         {

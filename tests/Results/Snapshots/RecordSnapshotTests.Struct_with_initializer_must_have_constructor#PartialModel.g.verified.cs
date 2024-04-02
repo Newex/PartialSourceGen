@@ -15,10 +15,10 @@ namespace MySpace;
 /// </summary>
 public readonly record struct PartialModel
 {
-    public Model(string name)
+    public PartialModel(string name)
     {
         Name = name;
     }
 
-    public string Name { get; init; } = string.Empty;
+    public string? Name { get; init; } = string.Empty;
 }

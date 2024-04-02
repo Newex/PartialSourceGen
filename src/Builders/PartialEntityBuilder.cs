@@ -46,32 +46,8 @@ public static class PartialEntityBuilder
         var isStruct = node.ClassOrStructKeyword.ValueText.Equals("struct", StringComparison.OrdinalIgnoreCase);
         if (isStruct && hasPropertyInitializers)
         {
-            // Find the constructors
-            var ctors = original.DescendantNodes().OfType<ConstructorDeclarationSyntax>();
-            var originalMembers = original.DescendantNodes().OfType<MemberDeclarationSyntax>();
-            Dictionary<string, MemberDeclarationSyntax> foundMembers = [];
-
-            foreach (var ctor in ctors)
-            {
-                var members = ctor.DescendantNodes().OfType<IdentifierNameSyntax>();
-
-                foreach (var member in members)
-                {
-                    Parsers.GetMembers(original, member, ref foundMembers);
-                }
-            }
-
-            List<MemberDeclarationSyntax> difference = [];
-            foreach (var kv in propMembers)
-            {
-                if (!foundMembers.ContainsKey(kv.Key))
-                {
-                    difference.Add(kv.Value);
-                }
-            }
-
-            MemberDeclarationSyntax[] all = [.. difference,.. ctors];
-            return node.AddMembers(all);
+            var members = AddConstructorsAndMembers(node, original, propMembers);
+            return node.AddMembers(members);
         }
         return node;
     }
@@ -88,32 +64,8 @@ public static class PartialEntityBuilder
     {
         if (hasPropertyInitializers)
         {
-            // Find the constructors
-            var ctors = original.DescendantNodes().OfType<ConstructorDeclarationSyntax>();
-            var originalMembers = original.DescendantNodes().OfType<MemberDeclarationSyntax>();
-            Dictionary<string, MemberDeclarationSyntax> foundMembers = [];
-
-            foreach (var ctor in ctors)
-            {
-                var members = ctor.DescendantNodes().OfType<IdentifierNameSyntax>();
-
-                foreach (var member in members)
-                {
-                    Parsers.GetMembers(original, member, ref foundMembers);
-                }
-            }
-
-            List<MemberDeclarationSyntax> difference = [];
-            foreach (var kv in propMembers)
-            {
-                if (!foundMembers.ContainsKey(kv.Key))
-                {
-                    difference.Add(kv.Value);
-                }
-            }
-
-            MemberDeclarationSyntax[] all = [.. difference,.. ctors];
-            return node.AddMembers(all);
+            var members = AddConstructorsAndMembers(node, original, propMembers);
+            return node.AddMembers(members);
         }
 
         return node;
@@ -129,5 +81,38 @@ public static class PartialEntityBuilder
         var nullableDirective = SyntaxFactory.NullableDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.EnableKeyword), true);
         var nullableTrivia = SyntaxFactory.Trivia(nullableDirective);
         return node.WithLeadingTrivia(nullableTrivia);
+    }
+
+    private static MemberDeclarationSyntax[] AddConstructorsAndMembers(TypeDeclarationSyntax node, SyntaxNode original, Dictionary<string, MemberDeclarationSyntax> propMembers)
+    {
+        // Find the constructors
+        var ctors = original.DescendantNodes().OfType<ConstructorDeclarationSyntax>();
+        var originalMembers = original.DescendantNodes().OfType<MemberDeclarationSyntax>();
+        Dictionary<string, MemberDeclarationSyntax> foundMembers = [];
+        List<ConstructorDeclarationSyntax> partialCtors = [];
+
+        foreach (var ctor in ctors)
+        {
+            var members = ctor.DescendantNodes().OfType<IdentifierNameSyntax>();
+            var partialCtor = SyntaxFactory.ConstructorDeclaration(ctor.AttributeLists, ctor.Modifiers, node.Identifier, ctor.ParameterList, ctor.Initializer, ctor.Body, ctor.ExpressionBody, ctor.SemicolonToken);
+            partialCtors.Add(partialCtor);
+            foreach (var member in members)
+            {
+
+                Parsers.GetMembers(original, member, ref foundMembers);
+            }
+        }
+
+        List<MemberDeclarationSyntax> difference = [];
+        foreach (var kv in propMembers)
+        {
+            if (!foundMembers.ContainsKey(kv.Key))
+            {
+                difference.Add(kv.Value);
+            }
+        }
+
+        MemberDeclarationSyntax[] all = [.. difference, .. partialCtors];
+        return all;
     }
 }

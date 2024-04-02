@@ -144,11 +144,7 @@ That required properties can be set either via using the keyword `required` or a
 This source generator will do the following:
 
 - [x] If the input class has type constraints for a generic type, with `notnull`. This will be removed in the partial class.
-- [x] If the property is either:
-    - Marked with a required keyword, or a required attribute
-    - Is only a getter
-    - Is an expression bodied property (only getter)
-    - If any of the above conditions holds true, the original type will be unchanged.
+- [x] If the property is marked with a required keyword, or a required attribute. The type will be unchanged.
 - [x] Any methods or fields that are referenced from a property will be included in the partial class
 - [x] If the input is a struct, and contains property initializers then all the constructors and their references to fields and methods will be included.
 

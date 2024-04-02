@@ -18,5 +18,5 @@ public class PartialModel
 {
     private string? other;
     public string? Value => other;
-    public string NonNullValue => "Value";
+    public string? NonNullValue => "Value";
 }
