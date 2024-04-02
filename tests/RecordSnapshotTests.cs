@@ -179,4 +179,28 @@ public class RecordSnapshotTests
                                   .GetSecondResult();
         return Verify(runResult).UseDirectory("Results/Snapshots");
     }
+
+    [Fact]
+    public Task With_property_default_value_assignments()
+    {
+        var source = """
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        /// <summary>
+        /// An entity model
+        /// </summary>
+        [Partial]
+        public record Model
+        {
+            public string Name { get; set; } = string.Empty;
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        return Verify(runResult).UseDirectory("Results/Snapshots");
+    }
 }
