@@ -195,6 +195,36 @@ public class RecordSnapshotTests
         public record Model
         {
             public string Name { get; set; } = string.Empty;
+            public bool Value { get; }
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        return Verify(runResult).UseDirectory("Results/Snapshots");
+    }
+
+    [Fact]
+    public Task Struct_with_initializer_must_have_constructor()
+    {
+        var source = """
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        /// <summary>
+        /// An entity model
+        /// </summary>
+        [Partial]
+        public readonly record struct Model
+        {
+            public Model(string name)
+            {
+                Name = name;
+            }
+
+            public string Name { get; init; } = string.Empty;
         }
         """;
 
