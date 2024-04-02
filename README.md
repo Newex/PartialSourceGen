@@ -150,6 +150,7 @@ This source generator will do the following:
     - Is an expression bodied property (only getter)
     - If any of the above conditions holds true, the original type will be unchanged.
 - Any methods or fields that are referenced from a property will be included in the partial class
+- If the input is a struct, and contains property initializers then all the constructors and their references to fields and methods will be included.
 
 # References
 
