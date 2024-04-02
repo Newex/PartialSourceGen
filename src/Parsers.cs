@@ -80,22 +80,6 @@ public static class Parsers
 
     internal static bool PropertyMemberReferences(this PropertyDeclarationSyntax propertyDeclaration, SyntaxNode node, out Dictionary<string, MemberDeclarationSyntax>? result)
     {
-        // var accessor = propertyDeclaration.AccessorList?.Accessors.Where(a => a.IsKind(accessorKind)).FirstOrDefault();
-        // if (accessor is null)
-        // {
-        //     result = null;
-        //     return false;
-        // }
-
-        // var returnStatement = accessor.DescendantNodes().OfType<ReturnStatementSyntax>().FirstOrDefault();
-        // var expressionBody = accessor.DescendantNodes().OfType<ArrowExpressionClauseSyntax>().FirstOrDefault();
-
-        // if (returnStatement is null && expressionBody is null)
-        // {
-        //     result = null;
-        //     return false;
-        // }
-
         var members = propertyDeclaration.DescendantNodes().OfType<IdentifierNameSyntax>();
 
         if (members is null)
@@ -114,7 +98,13 @@ public static class Parsers
         return result.Any();
     }
 
-    private static void GetMembers(SyntaxNode node, IdentifierNameSyntax ident, ref Dictionary<string, MemberDeclarationSyntax> result)
+    /// <summary>
+    /// Retrieve field and method references
+    /// </summary>
+    /// <param name="node">The partial node</param>
+    /// <param name="ident">The current identifier</param>
+    /// <param name="result">The resulting found members</param>
+    public static void GetMembers(SyntaxNode node, IdentifierNameSyntax ident, ref Dictionary<string, MemberDeclarationSyntax> result)
     {
         var current = node.DescendantNodes()
                           .OfType<FieldDeclarationSyntax>()
