@@ -135,16 +135,13 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 var hasRequiredAttribute = prop.AttributeLists.SelectMany(attrs => attrs.Attributes.Select(a => a.Name.GetText().ToString()))
                                                    .Any(s => s.StartsWith("Required", System.StringComparison.OrdinalIgnoreCase));
                 var hasRequired = prop.Modifiers.Any(m => m.IsKind(SyntaxKind.RequiredKeyword));
-                var onlyGetter = !prop.AccessorList?.Accessors.Any(a => a.IsKind(SyntaxKind.SetAccessorDeclaration)) ?? false;
-                var keepType = hasRequired || hasRequiredAttribute || isExpression || onlyGetter;
+                var keepType = hasRequired || hasRequiredAttribute;
 
                 if (keepType)
                 {
                     // Retain original type when
                     // 1. has Required attribute
                     // 2. has required keyword
-                    // 3. is an expression body property
-                    // 4. is an only getter property
                     propertyType = prop.Type;
                 }
                 else
