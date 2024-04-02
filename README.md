@@ -139,6 +139,17 @@ Console.WriteLine("Model ID: {0}", model.ID);
 **Note:**  
 That required properties can be set either via using the keyword `required` or an attribute `Required`. When including properties that are marked as required, the property will not be made nullable. They will retain their original property type, thus if the property was nullable the required property will also be nullable.
 
+## Functionalities
+
+This source generator will do the following:
+
+- If the input class has type constraints for a generic type, with `notnull`. This will be removed in the partial class.
+- If the property is either:
+    - Marked with a required keyword, or a required attribute
+    - Is only a getter
+    - Is an expression bodied property (only getter)
+    - If any of the above conditions holds true, the original type will be unchanged.
+
 # References
 
 * The typescript `Partial` utility type: https://www.typescriptlang.org/docs/handbook/utility-types.html#partialtype
