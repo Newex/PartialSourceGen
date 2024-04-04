@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
@@ -142,6 +142,72 @@ public static class Parsers
         {
             source.Add(key, value);
         }
+    }
+
+    /// <summary>
+    /// Get any partial reference attribute info
+    /// </summary>
+    /// <param name="property">The current property under inspection</param>
+    /// <param name="originalSource">The original type</param>
+    /// <param name="partialSource">The partial type</param>
+    /// <param name="name">The property name to use</param>
+    /// <returns>True if has partial reference otherwise false</returns>
+    public static bool GetPartialReferenceInfo(this PropertyDeclarationSyntax property, out IdentifierNameSyntax? originalSource, out string? partialSource, out string? name)
+    {
+        if (!property.AttributeLists.Any())
+        {
+            // No attributes
+            originalSource = null;
+            partialSource = null;
+            name = null;
+            return false;
+        }
+
+        // Only supported from NET7.0 and onwards with language version C# 11
+        var generic = property.AttributeLists.SelectMany(ats => ats.Attributes.SelectMany(a => a.DescendantNodes())).OfType<GenericNameSyntax>().
+            FirstOrDefault(a => a.Identifier.ValueText.StartsWith("PartialReference"));
+
+        if (generic is not null)
+        {
+            // Extract type info
+            originalSource = generic?.TypeArgumentList.Arguments.OfType<IdentifierNameSyntax>().FirstOrDefault();
+            partialSource = generic?.TypeArgumentList.Arguments.OfType<IdentifierNameSyntax>().Skip(1).FirstOrDefault()?.Identifier.ValueText;
+            name = generic?.Parent?.DescendantNodes().OfType<LiteralExpressionSyntax>().Where(n => n.Parent.IsKind(SyntaxKind.AttributeArgument))
+                .Select(f => f.Token.ValueText)
+                .FirstOrDefault();
+            return originalSource is not null && !string.IsNullOrWhiteSpace(partialSource);
+        }
+        else
+        {
+            // Non generic attributes "PartialReferenceAttribute"
+            var attrs = property.DescendantNodes().OfType<AttributeSyntax>().SelectMany(a => a.DescendantNodes().OfType<IdentifierNameSyntax>())
+                .Where(n => n.Identifier.ValueText.StartsWith("PartialReference"));
+            if (attrs is null || !attrs.Any())
+            {
+                // Does not exist
+                originalSource = null;
+                partialSource = null;
+                name = null;
+                return false;
+            }
+
+            var attr = attrs.FirstOrDefault().Parent;
+            if (attr is AttributeSyntax partialAttr)
+            {
+                // Extract type info
+                var attrArgs = partialAttr.DescendantNodes().OfType<TypeOfExpressionSyntax>();
+                originalSource = attrArgs.FirstOrDefault()?.Type as IdentifierNameSyntax;
+                var second = attrArgs.Skip(1).FirstOrDefault().Type as IdentifierNameSyntax;
+                partialSource = second?.Identifier.ValueText;
+                name = partialAttr.DescendantNodes().OfType<LiteralExpressionSyntax>().SingleOrDefault()?.Token.ValueText;
+                return originalSource is not null && !string.IsNullOrWhiteSpace(partialSource);
+            }
+        }
+
+        originalSource = null;
+        partialSource = null;
+        name = null;
+        return false;
     }
 
     /// <summary>
