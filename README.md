@@ -40,7 +40,7 @@ public partial record PartialPerson
 
 Add nuget package `dotnet add package PartialSourceGen` to your project and ensure that the csproj reference the package as an analyzer/source generator by having:
 
-```csharp
+```xml
 <ItemGroup>
     <PackageReference Include="PartialSourceGen" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 </ItemGroup>
