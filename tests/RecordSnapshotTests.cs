@@ -233,4 +233,32 @@ public class RecordSnapshotTests
                                   .GetSecondResult();
         return Verify(runResult).UseDirectory("Results/Snapshots");
     }
+
+    [Fact]
+    public Task Exclude_property_initializer()
+    {
+        var source = """
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        /// <summary>
+        /// An entity model
+        /// </summary>
+        [Partial]
+        public record Model
+        {
+            /// <summary>
+            /// The name
+            /// </summary>
+            [WithoutInitializer]
+            public string Name { get; set; } = "John Doe";
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        return Verify(runResult).UseDirectory("Results/Snapshots");
+    }
 }
