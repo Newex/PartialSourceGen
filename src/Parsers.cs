@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
@@ -142,5 +142,33 @@ public static class Parsers
         {
             source.Add(key, value);
         }
+    }
+
+    /// <summary>
+    /// Remove other classes/structs/records except the one currently in focus
+    /// </summary>
+    /// <param name="root">The root source code</param>
+    /// <param name="entityToKeep">The entity to keep</param>
+    /// <returns>The root node with only the entity to keep as a member node</returns>
+    public static SyntaxNode FilterOutEntitiesExcept(this SyntaxNode root, SyntaxNode entityToKeep)
+    {
+        var typeDefinitions = root.DescendantNodes().OfType<TypeDeclarationSyntax>();
+
+        foreach (var t in typeDefinitions)
+        {
+            if (!t.IsEquivalentTo(entityToKeep))
+            {
+                var newNode = root.RemoveNode(t, SyntaxRemoveOptions.KeepNoTrivia);
+                if (newNode is null)
+                {
+                    // We removed the whole thing D:
+                    return root;
+                }
+
+                root = newNode;
+            }
+        }
+
+        return root;
     }
 }

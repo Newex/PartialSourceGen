@@ -280,6 +280,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
         var newRoot = root
             .ReplaceNode(node, partialType)
             .WithNullableEnableDirective()
+            .FilterOutEntitiesExcept(partialType)
             .NormalizeWhitespace();
 
         var newTree = SyntaxFactory.SyntaxTree(newRoot, root.SyntaxTree.Options);
