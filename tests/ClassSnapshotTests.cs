@@ -306,4 +306,155 @@ public class ClassSnapshotTests
                                   .GetSecondResult();
         return Verify(runResult).UseDirectory("Results/Snapshots");
     }
+
+    [Fact]
+    public Task Only_create_one_source_per_class()
+    {
+        var source = """
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        /// <summary>
+        /// An entity model
+        /// </summary>
+        [Partial]
+        public class Model
+        {
+            /// <summary>
+            /// The name
+            /// </summary>
+            public string Name { get; set; } = "John Doe";
+        }
+
+        /// <summary>
+        /// An entity model
+        /// </summary>
+        [Partial]
+        public class AnotherModel
+        {
+            /// <summary>
+            /// The name
+            /// </summary>
+            public string Name { get; set; } = "John Doe";
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        return Verify(runResult).UseDirectory("Results/Snapshots");
+    }
+
+    [Fact]
+    public Task PartialReference_attribute_in_a_nested_type_using_generic_attribute()
+    {
+        var source = """
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        /// <summary>
+        /// An entity model
+        /// </summary>
+        [Partial]
+        public class Model
+        {
+            /// <summary>
+            /// The name
+            /// </summary>
+            [PartialReference<Post, PartialPost>]
+            public List<Post> Name { get; set; }
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        return Verify(runResult).UseDirectory("Results/Snapshots");
+    }
+
+    [Fact]
+    public Task PartialReference_attribute_using_generic_attribute()
+    {
+        var source = """
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        /// <summary>
+        /// An entity model
+        /// </summary>
+        [Partial]
+        public class Model
+        {
+            /// <summary>
+            /// The name
+            /// </summary>
+            [PartialReference<Post, PartialPost>]
+            public Post Name { get; set; }
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        return Verify(runResult).UseDirectory("Results/Snapshots");
+    }
+
+    [Fact]
+    public Task PartialReference_attribute_using_normal_attribute()
+    {
+        var source = """
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        /// <summary>
+        /// An entity model
+        /// </summary>
+        [Partial]
+        public class Model
+        {
+            /// <summary>
+            /// The name
+            /// </summary>
+            [PartialReference(typeof(Post), typeof(PartialPost))]
+            public Post Name { get; set; }
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        return Verify(runResult).UseDirectory("Results/Snapshots");
+    }
+
+    [Fact]
+    public Task PartialReference_attribute_using_normal_attribute_with_custom_name()
+    {
+        var source = """
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        /// <summary>
+        /// An entity model
+        /// </summary>
+        [Partial]
+        public class Model
+        {
+            /// <summary>
+            /// The name
+            /// </summary>
+            [PartialReference(typeof(Post), typeof(PartialPost), "PartialPost")]
+            public Post Name { get; set; }
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        return Verify(runResult).UseDirectory("Results/Snapshots");
+    }
 }

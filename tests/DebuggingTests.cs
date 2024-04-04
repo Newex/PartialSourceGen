@@ -10,14 +10,6 @@ namespace PartialSourceGen.Tests;
 public class DebuggingTests
 {
     [Fact]
-    public void DebugMarkerGenerator()
-    {
-        var markerGenerator = new PartialIncrementalSourceGenerator();
-        var result = GeneratorDebugger.RunDebugging([], [markerGenerator]);
-        Debug.WriteLine(result.GeneratedTrees.Length);
-    }
-
-    [Fact]
     public void DebugPartialGenerator()
     {
         var partialGenerator = new PartialIncrementalSourceGenerator();
@@ -32,27 +24,15 @@ public class DebuggingTests
             /// A person
             /// </summary>
             [Obsolete, Partial(IncludeRequiredProperties = true]
-            public class Person<T>
-            where T : notnull
+            public class Person
             {
                 Person() { }
 
-                /// <summary>
-                /// The Person ID
-                /// Newline xml comment
-                /// </summary>
-                [Required, IncludeInitializerAttribute]
-                public int ID { get; init; } = 123;
+                [PartialReference<Other, PartialOther>]
+                public Other Other { get; set; }
 
-                /// <summary>
-                /// The first name
-                /// </summary>
-                public string FirstName { get; init; } = string.Empty;
-                public string Value => "The value is here";
-
-                public void SomeMethod()
-                {
-                }
+                [PartialReference(typeof(Other), typeof(PartialOther), "PartialOthers")]
+                public Dictionary<Other, List<Dictionary<int, Other>>> Others { get; set; }
             }
             """);
 

@@ -67,6 +67,36 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
         public class IncludeInitializerAttribute : Attribute
         {
         }
+
+        #if NET7_0_OR_GREATER
+        /// <summary>
+        /// Replace a type with a partial reference
+        /// </summary>
+        /// <typeparam name="TOriginal">The original type</typeparam>
+        /// <typeparam name="TPartial">The partial type</typeparam>
+        [AttributeUsage(AttributeTargets.Property)]
+        public class PartialReferenceAttribute<TOriginal, TPartial> : Attribute
+        {
+            public PartialReferenceAttribute(string? name = null)
+            {
+            }
+        }
+        #endif
+        /// <summary>
+        /// Replace a type with a partial reference
+        /// </summary>
+        [AttributeUsage(AttributeTargets.Property)]
+        public class PartialReferenceAttribute : Attribute
+        {
+            /// <summary>
+            /// Instantiate a partial reference attribute
+            /// </summary>
+            /// <param name="target">The type to target for replacement</param>
+            public PartialReferenceAttribute(Type original, Type partial, string? name = null)
+            {
+            }
+        }
+
         #nullable disable
     }
     """;
@@ -74,7 +104,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
     /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        context.RegisterPostInitializationOutput(ctx => ctx.AddSource("PartialAttribute.g.cs", SourceText.From(Disclaimer + SourceAttribute, Encoding.UTF8)));
+        context.RegisterPostInitializationOutput(ctx => ctx.AddSource("PartialSourceGenAttributes.g.cs", SourceText.From(Disclaimer + SourceAttribute, Encoding.UTF8)));
 
         var candidates = context.SyntaxProvider.ForAttributeWithMetadataName(
             fullyQualifiedMetadataName: "PartialSourceGen.PartialAttribute",
@@ -97,7 +127,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
         }
 
         var root = context.SemanticModel.SyntaxTree.GetRoot(token);
-        var props = root.DescendantNodes().OfType<PropertyDeclarationSyntax>();
+        var props = context.TargetNode.DescendantNodes().OfType<PropertyDeclarationSyntax>();
         if (!props.Any())
         {
             return null;
@@ -187,7 +217,23 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                         .WithAccessorList(prop.AccessorList)
                         .WithExpressionBody(prop.ExpressionBody)
                         .WithSemicolonToken(prop.SemicolonToken);
+            }
 
+            // Get partial reference types
+            var hasPartialReference = prop.GetPartialReferenceInfo(out var originalSource, out var partialSource, out var partialRefName);
+            if (hasPartialReference)
+            {
+                var partialRefProp = SyntaxFactory.ParseTypeName(partialSource!);
+                candidateProp = candidateProp
+                    .ReplaceNodes(candidateProp.DescendantNodes().OfType<IdentifierNameSyntax>(), (n, _) =>
+                        n.IsEquivalentTo(originalSource!, topLevel: true)
+                            ? partialRefProp
+                            : n);
+
+                if (!string.IsNullOrWhiteSpace(partialRefName))
+                {
+                    candidateProp = candidateProp.WithIdentifier(SyntaxFactory.Identifier(partialRefName!));
+                }
             }
 
             var includeInitializerAttribute = prop.AttributeLists
@@ -280,6 +326,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
         var newRoot = root
             .ReplaceNode(node, partialType)
             .WithNullableEnableDirective()
+            .FilterOutEntitiesExcept(partialType)
             .NormalizeWhitespace();
 
         var newTree = SyntaxFactory.SyntaxTree(newRoot, root.SyntaxTree.Options);
