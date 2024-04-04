@@ -14,7 +14,7 @@ namespace MySpace;
 /// <summary>
 /// An entity model
 /// </summary>
-public class PartialModel
+public partial class PartialModel
 {
     private string? other;
     private string? firstLevel;

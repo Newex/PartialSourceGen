@@ -13,7 +13,7 @@ namespace MySpace;
 /// <summary>
 /// An entity model
 /// </summary>
-public readonly record struct PartialModel
+public readonly partial record struct PartialModel
 {
     public PartialModel(string name)
     {
