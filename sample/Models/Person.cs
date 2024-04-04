@@ -1,4 +1,5 @@
 ﻿using PartialSourceGen;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Sample.Models;
@@ -7,7 +8,7 @@ namespace Sample.Models;
 /// A person
 /// </summary>
 [Partial(IncludeRequiredProperties = true, Summary = "A partial person")]
-public readonly record struct Person
+public readonly partial record struct Person
 {
     public Person()
     {
