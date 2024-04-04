@@ -29,7 +29,7 @@ using PartialSourceGen;
 
 namespace MySpace;
 
-public record PartialPerson
+public partial record PartialPerson
 {
     public int? ID { get; init; }
     public string? Name { get; init; }
@@ -38,7 +38,13 @@ public record PartialPerson
 
 # Installation
 
-Add nuget package `dotnet add package PartialSourceGen`.
+Add nuget package `dotnet add package PartialSourceGen` to your project and ensure that the csproj reference the package as an analyzer/source generator by having:
+
+```csharp
+<ItemGroup>
+    <PackageReference Include="PartialSourceGen" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+</ItemGroup>
+```
 
 # Why
 When you have an API that takes in some model, but you don't need to specify all the properties, you can just use this library.  
