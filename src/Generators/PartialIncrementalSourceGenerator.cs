@@ -230,7 +230,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             RecordDeclarationSyntax record => SyntaxFactory
                 .RecordDeclaration(record.Kind(), record.Keyword, name)
                 .WithClassOrStructKeyword(record.ClassOrStructKeyword)
-                .WithModifiers(record.Modifiers)
+                .WithModifiers(record.AddPartialKeyword())
                 .WithConstraintClauses(SyntaxFactory.List(excludeNotNullConstraint))
                 .WithTypeParameterList(record.TypeParameterList)
                 .WithOpenBraceToken(record.OpenBraceToken)
@@ -240,7 +240,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 .WithSummary(record, summaryTxt),
             StructDeclarationSyntax val => SyntaxFactory
                 .StructDeclaration(name)
-                .WithModifiers(val.Modifiers)
+                .WithModifiers(val.AddPartialKeyword())
                 .WithTypeParameterList(val.TypeParameterList)
                 .WithConstraintClauses(SyntaxFactory.List(excludeNotNullConstraint))
                 .WithOpenBraceToken(val.OpenBraceToken)
@@ -250,7 +250,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 .WithSummary(val, summaryTxt),
             ClassDeclarationSyntax val => SyntaxFactory
                 .ClassDeclaration(name)
-                .WithModifiers(val.Modifiers)
+                .WithModifiers(val.AddPartialKeyword())
                 .WithTypeParameterList(val.TypeParameterList)
                 .WithConstraintClauses(SyntaxFactory.List(excludeNotNullConstraint))
                 .WithOpenBraceToken(val.OpenBraceToken)

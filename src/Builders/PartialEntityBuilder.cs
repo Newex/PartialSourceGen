@@ -115,4 +115,17 @@ public static class PartialEntityBuilder
         MemberDeclarationSyntax[] all = [.. difference, .. partialCtors];
         return all;
     }
+
+    /// <summary>
+    /// Add partial keyword to the entity
+    /// </summary>
+    /// <typeparam name="T">The struct, record or class type</typeparam>
+    /// <param name="original">The original entity</param>
+    /// <returns>A syntaxtoken list with the partial keyword</returns>
+    public static SyntaxTokenList AddPartialKeyword<T>(this T original)
+        where T : TypeDeclarationSyntax
+    {
+        List<SyntaxToken> withPartial = [.. original.Modifiers.Where(m => !m.IsKind(SyntaxKind.PartialKeyword)), SyntaxFactory.Token(SyntaxKind.PartialKeyword)];
+        return SyntaxFactory.TokenList(withPartial);
+    }
 }
