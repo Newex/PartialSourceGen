@@ -14,8 +14,8 @@ public readonly partial record struct Person
     {
     }
 
-    [Required]
-    public int ID { get; init; }
+    [Required, WithoutInitializer]
+    public int ID { get; init; } = 123;
 
     /// <summary>
     /// The first name

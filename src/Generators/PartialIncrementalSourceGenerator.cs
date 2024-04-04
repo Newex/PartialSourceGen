@@ -59,6 +59,14 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             /// </summary>
             public string? PartialClassName { get; set; }
         }
+
+        /// <summary>
+        /// Do not include the initializer for this property in the partial entity.
+        /// </summary>
+        [AttributeUsage(AttributeTargets.Property)]
+        public class WithoutInitializerAttribute : Attribute
+        {
+        }
         #nullable disable
     }
     """;
@@ -182,11 +190,17 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
 
             }
 
+            var withoutAttribute = prop.AttributeLists.SelectMany(ats => ats.DescendantNodes().OfType<IdentifierNameSyntax>())
+                                                      .FirstOrDefault(n => n.Identifier.ValueText.Equals("WithoutInitializer"));
+            var includeInitializer = withoutAttribute is null;
             if (prop.Initializer != null)
             {
-                candidateProp = candidateProp
-                    .WithInitializer(prop.Initializer)
-                    .WithSemicolonToken (prop.SemicolonToken);
+                if (includeInitializer)
+                {
+                    candidateProp = candidateProp
+                        .WithInitializer(prop.Initializer)
+                        .WithSemicolonToken(prop.SemicolonToken);
+                }
             }
 
             // Get all field and method references
@@ -199,7 +213,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 }
             }
 
-            hasPropertyInitializer = hasPropertyInitializer || prop.Initializer is not null;
+            hasPropertyInitializer = hasPropertyInitializer || (prop.Initializer is not null && includeInitializer);
             optionalProps.Add(candidateProp);
         }
 
