@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using PartialSourceGen.Tests.Configuration;
 using Xunit.Categories;
 using static VerifyXunit.Verifier;
@@ -179,7 +178,7 @@ public class StructSnapshotTests
     }
 
     [Fact]
-    public Task Exclude_property_initializer()
+    public Task Include_property_initializer()
     {
         var source = """
         using PartialSourceGen;
@@ -195,7 +194,7 @@ public class StructSnapshotTests
             /// <summary>
             /// The name
             /// </summary>
-            [WithoutInitializer]
+            [IncludeInitializer]
             public string Name { get; set; } = "John Doe";
         }
         """;
