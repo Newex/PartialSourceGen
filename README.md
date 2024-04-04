@@ -145,6 +145,42 @@ Console.WriteLine("Model ID: {0}", model.ID);
 **Note:**  
 That required properties can be set either via using the keyword `required` or an attribute `Required`. When including properties that are marked as required, the property will not be made nullable. They will retain their original property type, thus if the property was nullable the required property will also be nullable.
 
+### Add custom methods to the partial entity
+The generated class/struct/record is a partial entity, thus it is possible to just add a method in a separate file.  
+The normal constraints and rules apply for partial classes: https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/partial-classes-and-methods
+
+Example:
+
+```csharp
+// Person.cs
+using PartialSourceGen;
+
+namespace People;
+
+[Partial]
+record Person
+{
+    int Age { get; }
+}
+```
+
+Add custom method:
+
+```csharp
+// PartialPerson.cs
+using System;
+
+record partial PartialPerson
+{
+    int AgeInDogYears()
+    {
+        return Age * 7;
+    }
+}
+```
+
+## Fine tune properties using attributes
+
 ### Include property initializer
 A property initializer in the partial entity can be included by annotating the property with `IncludeInitializer` attribute.
 
@@ -170,6 +206,57 @@ public record PartialPerson
 ```
 
 The default behaviour is to exclude property initializers.
+
+### Reference partial other partial entities
+To reference another partial object, add the `PartialReference` attribute to the property.
+
+If using c# 11.0 (dotnet 7.0 or newer) you can use the generic version, like so:
+
+```csharp
+// Person.cs
+using PartialSourceGen;
+
+namespace MySpace;
+
+[Partial]
+public record Person
+{
+    [PartialReference<Post, PartialPost>("CustomOptionalNameForPosts")]
+    public List<Post> Posts { get; set; } = [];
+}
+```
+
+Which will generate:
+
+```csharp
+// PartialPerson.g.cs
+using PartialSourceGen;
+
+namespace MySpace;
+
+public record PartialPerson
+{
+    public List<PartialPost>? CustomOptionalNameForPosts { get; set; }
+}
+```
+
+If no name is included the original name will be used.
+
+If using an older version than C# 11.0, you can use the non-generic attribute version:
+
+```csharp
+// Person.cs
+using PartialSourceGen;
+
+namespace MySpace;
+
+[Partial]
+public record Person
+{
+    [PartialReference(typeof(Post), typeof(PartialPost))]
+    public List<Post> Posts { get; set; } = [];
+}
+```
 
 ## Functionalities
 
