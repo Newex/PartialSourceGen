@@ -13,7 +13,7 @@ namespace MySpace;
 /// <summary>
 /// An entity model
 /// </summary>
-public class PartialModel<T>
+public partial class PartialModel<T>
 {
     public T? Name { get; set; }
 }

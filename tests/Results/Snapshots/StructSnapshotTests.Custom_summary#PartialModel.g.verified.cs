@@ -13,7 +13,7 @@ namespace MySpace;
 /// <summary>
 /// Custom summary
 /// </summary>
-public struct PartialModel
+public partial struct PartialModel
 {
     public string? Name { get; set; }
 }
