@@ -77,6 +77,10 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
         [AttributeUsage(AttributeTargets.Property)]
         public class PartialReferenceAttribute<TOriginal, TPartial> : Attribute
         {
+            /// <summary>
+            /// Instantiate a partial reference attribute
+            /// </summary>
+            /// <param name="name">The partial property name to generate</param>
             public PartialReferenceAttribute(string? name = null)
             {
             }
@@ -91,7 +95,9 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             /// <summary>
             /// Instantiate a partial reference attribute
             /// </summary>
-            /// <param name="target">The type to target for replacement</param>
+            /// <param name="original">The original type</param>
+            /// <param name="partial">The partial type</param>
+            /// <param name="name">The partial property name to generate</param>
             public PartialReferenceAttribute(Type original, Type partial, string? name = null)
             {
             }
