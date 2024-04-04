@@ -145,8 +145,8 @@ Console.WriteLine("Model ID: {0}", model.ID);
 **Note:**  
 That required properties can be set either via using the keyword `required` or an attribute `Required`. When including properties that are marked as required, the property will not be made nullable. They will retain their original property type, thus if the property was nullable the required property will also be nullable.
 
-### Exclude property initializer
-A property initializer in the partial entity can be excluded by annotating the property with `WithoutInitializer` attribute.
+### Include property initializer
+A property initializer in the partial entity can be included by annotating the property with `IncludeInitializer` attribute.
 
 Example:
 
@@ -155,7 +155,7 @@ Input `Person.cs`
 [Partial]
 public record Person
 {
-    [WithoutInitializer]
+    [IncludeInitializer]
     public string Name { get; set; } = string.Empty;
 }
 ```
@@ -165,9 +165,11 @@ Would produce `PartialPerson.g.cs`:
 ```csharp
 public record PartialPerson
 {
-    public string? Name { get; set; }
+    public string? Name { get; set; } = string.Empty;
 }
 ```
+
+The default behaviour is to exclude property initializers.
 
 ## Functionalities
 
