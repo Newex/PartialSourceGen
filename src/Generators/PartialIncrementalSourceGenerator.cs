@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -97,7 +97,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
         }
 
         var root = context.SemanticModel.SyntaxTree.GetRoot(token);
-        var props = root.DescendantNodes().OfType<PropertyDeclarationSyntax>();
+        var props = context.TargetNode.DescendantNodes().OfType<PropertyDeclarationSyntax>();
         if (!props.Any())
         {
             return null;
