@@ -2,7 +2,7 @@
 using System;
 using Sample.Models;
 
-PartialPerson partialPerson = new()
+PartialPerson<int> partialPerson = new()
 {
     FirstName = "John",
     LastName = "Doe"

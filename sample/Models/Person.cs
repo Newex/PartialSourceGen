@@ -7,8 +7,9 @@ namespace Sample.Models;
 /// <summary>
 /// A person
 /// </summary>
+/// <typeparam name="T">The type</typeparam>
 [Partial(IncludeRequiredProperties = true, Summary = "A partial person")]
-public readonly partial record struct Person
+public readonly partial record struct Person<T>
 {
     public Person()
     {
@@ -27,11 +28,13 @@ public readonly partial record struct Person
     /// </summary>
     public string? LastName { get; init; }
 
-    public static string Email
-    {
-        get
-        {
-            return "MyEmail";
-        }
-    }
+    [PartialReference<Post, PartialPost>]
+    public Post Post { get; init; }
+}
+
+[Partial]
+public record struct Post
+{
+    public int MyProperty { get; set; }
+    public int AnotherOne { get; set; }
 }
