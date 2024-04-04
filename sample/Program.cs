@@ -9,3 +9,4 @@ PartialPerson partialPerson = new()
 };
 
 Console.WriteLine("Hello {0} {1} with ID: {2}", partialPerson.FirstName, partialPerson.LastName, partialPerson.ID);
+partialPerson.CustomMethod();
