@@ -192,7 +192,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
 
             var includeInitializerAttribute = prop.AttributeLists
                                                   .SelectMany(ats => ats.DescendantNodes().OfType<IdentifierNameSyntax>())
-                                                  .FirstOrDefault(n => n.Identifier.ValueText.Equals("IncludeInitializer"));
+                                                  .FirstOrDefault(n => n.Identifier.ValueText.StartsWith("IncludeInitializer"));
             var includeInitializer = includeInitializerAttribute is not null;
             if (prop.Initializer != null && includeInitializer)
             {
