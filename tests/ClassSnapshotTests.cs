@@ -280,7 +280,7 @@ public class ClassSnapshotTests
     }
 
     [Fact]
-    public Task Exclude_property_initializer()
+    public Task Include_property_initializer()
     {
         var source = """
         using PartialSourceGen;
@@ -296,7 +296,7 @@ public class ClassSnapshotTests
             /// <summary>
             /// The name
             /// </summary>
-            [WithoutInitializer]
+            [IncludeInitializer]
             public string Name { get; set; } = "John Doe";
         }
         """;

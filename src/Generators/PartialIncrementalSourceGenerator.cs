@@ -61,10 +61,10 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
         }
 
         /// <summary>
-        /// Do not include the initializer for this property in the partial entity.
+        /// Include the initializer for this property in the partial entity.
         /// </summary>
         [AttributeUsage(AttributeTargets.Property)]
-        public class WithoutInitializerAttribute : Attribute
+        public class IncludeInitializerAttribute : Attribute
         {
         }
         #nullable disable
@@ -190,17 +190,15 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
 
             }
 
-            var withoutAttribute = prop.AttributeLists.SelectMany(ats => ats.DescendantNodes().OfType<IdentifierNameSyntax>())
-                                                      .FirstOrDefault(n => n.Identifier.ValueText.Equals("WithoutInitializer"));
-            var includeInitializer = withoutAttribute is null;
-            if (prop.Initializer != null)
+            var includeInitializerAttribute = prop.AttributeLists
+                                                  .SelectMany(ats => ats.DescendantNodes().OfType<IdentifierNameSyntax>())
+                                                  .FirstOrDefault(n => n.Identifier.ValueText.Equals("IncludeInitializer"));
+            var includeInitializer = includeInitializerAttribute is not null;
+            if (prop.Initializer != null && includeInitializer)
             {
-                if (includeInitializer)
-                {
-                    candidateProp = candidateProp
-                        .WithInitializer(prop.Initializer)
-                        .WithSemicolonToken(prop.SemicolonToken);
-                }
+                candidateProp = candidateProp
+                    .WithInitializer(prop.Initializer)
+                    .WithSemicolonToken(prop.SemicolonToken);
             }
 
             // Get all field and method references

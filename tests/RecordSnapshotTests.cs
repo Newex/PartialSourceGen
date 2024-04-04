@@ -181,31 +181,6 @@ public class RecordSnapshotTests
     }
 
     [Fact]
-    public Task With_property_default_value_assignments()
-    {
-        var source = """
-        using PartialSourceGen;
-
-        namespace MySpace;
-
-        /// <summary>
-        /// An entity model
-        /// </summary>
-        [Partial]
-        public record Model
-        {
-            public string Name { get; set; } = string.Empty;
-            public bool Value { get; }
-        }
-        """;
-
-        var runResult = TestHelper.GeneratorDriver(source)
-                                  .GetRunResult()
-                                  .GetSecondResult();
-        return Verify(runResult).UseDirectory("Results/Snapshots");
-    }
-
-    [Fact]
     public Task Struct_with_initializer_must_have_constructor()
     {
         var source = """
@@ -224,6 +199,7 @@ public class RecordSnapshotTests
                 Name = name;
             }
 
+            [IncludeInitializer]
             public string Name { get; init; } = string.Empty;
         }
         """;
@@ -235,7 +211,7 @@ public class RecordSnapshotTests
     }
 
     [Fact]
-    public Task Exclude_property_initializer()
+    public Task Include_property_initializer()
     {
         var source = """
         using PartialSourceGen;
@@ -251,7 +227,7 @@ public class RecordSnapshotTests
             /// <summary>
             /// The name
             /// </summary>
-            [WithoutInitializer]
+            [IncludeInitializer]
             public string Name { get; set; } = "John Doe";
         }
         """;
@@ -263,7 +239,7 @@ public class RecordSnapshotTests
     }
 
     [Fact]
-    public Task Struct_with_excluded_initializer_should_not_have_constructor()
+    public Task Struct_without_any_initializers_should_not_have_constructor()
     {
         var source = """
         using PartialSourceGen;
@@ -281,7 +257,6 @@ public class RecordSnapshotTests
                 Name = name;
             }
 
-            [WithoutInitializer]
             public string Name { get; init; } = string.Empty;
         }
         """;
