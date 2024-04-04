@@ -41,7 +41,7 @@ public class DebuggingTests
                 /// The Person ID
                 /// Newline xml comment
                 /// </summary>
-                [Required]
+                [Required, IncludeInitializerAttribute]
                 public int ID { get; init; } = 123;
 
                 /// <summary>
