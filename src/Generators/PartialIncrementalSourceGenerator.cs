@@ -168,6 +168,10 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
 
         foreach (var prop in originalProps)
         {
+            var includeInitializerAttribute = prop.AttributeLists
+                                                  .SelectMany(ats => ats.DescendantNodes().OfType<IdentifierNameSyntax>())
+                                                  .FirstOrDefault(n => n.Identifier.ValueText.StartsWith("IncludeInitializer"));
+            var includeInitializer = includeInitializerAttribute is not null && prop.Initializer is not null;
             var isExpression = prop.ExpressionBody is not null;
             TypeSyntax propertyType;
             if (prop.Type is NullableTypeSyntax nts)
@@ -179,13 +183,14 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 var hasRequiredAttribute = prop.AttributeLists.SelectMany(attrs => attrs.Attributes.Select(a => a.Name.GetText().ToString()))
                                                    .Any(s => s.StartsWith("Required", System.StringComparison.OrdinalIgnoreCase));
                 var hasRequired = prop.Modifiers.Any(m => m.IsKind(SyntaxKind.RequiredKeyword));
-                var keepType = hasRequired || hasRequiredAttribute;
+                var keepType = hasRequired || hasRequiredAttribute || includeInitializer;
 
                 if (keepType)
                 {
                     // Retain original type when
                     // 1. has Required attribute
                     // 2. has required keyword
+                    // 3. has IncludeInitializer with initializer
                     propertyType = prop.Type;
                 }
                 else
@@ -242,11 +247,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 }
             }
 
-            var includeInitializerAttribute = prop.AttributeLists
-                                                  .SelectMany(ats => ats.DescendantNodes().OfType<IdentifierNameSyntax>())
-                                                  .FirstOrDefault(n => n.Identifier.ValueText.StartsWith("IncludeInitializer"));
-            var includeInitializer = includeInitializerAttribute is not null;
-            if (prop.Initializer != null && includeInitializer)
+            if (includeInitializer)
             {
                 candidateProp = candidateProp
                     .WithInitializer(prop.Initializer)
