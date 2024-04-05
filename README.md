@@ -201,11 +201,11 @@ Would produce `PartialPerson.g.cs`:
 ```csharp
 public record PartialPerson
 {
-    public string? Name { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
 }
 ```
 
-The default behaviour is to exclude property initializers.
+The default behaviour is to exclude property initializers. When a property is included with its initializer, the type will be retained if it is non nullable.
 
 ### Reference partial other partial entities
 To reference another partial object, add the `PartialReference` attribute to the property.
@@ -264,6 +264,7 @@ This source generator will do the following:
 
 - [x] If the input class has type constraints for a generic type, with `notnull`. This will be removed in the partial class.
 - [x] If the property is marked with a required keyword, or a required attribute. The type will be unchanged.
+- [x] The type will be retained when including initializer on a non-nullable property.
 - [x] Any methods or fields that are referenced from a property will be included in the partial class
 - [x] If the input is a struct, and contains property initializers then all the constructors and their references to fields and methods will be included.
 
