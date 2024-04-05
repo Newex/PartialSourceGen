@@ -1,3 +1,5 @@
+![NuGet Version](https://img.shields.io/nuget/v/PartialSourceGen)
+
 # What is it?
 
 This is a package that generates a partial entity from a model that has the attribute `Partial`.
