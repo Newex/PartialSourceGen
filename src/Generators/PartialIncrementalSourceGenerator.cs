@@ -32,6 +32,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
 
     using System;
 
+    #if !PARTIALSOURCEGEN_EXCLUDE_ATTRIBUTES
     namespace PartialSourceGen
     {
         #nullable enable
@@ -39,7 +40,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
         /// Generate partial optional properties of this class/struct.
         /// </summary>
         [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-        public class PartialAttribute : Attribute
+        internal sealed class PartialAttribute : Attribute
         {
             /// <summary>
             /// The optional summary for the partial entity. If not given
@@ -64,7 +65,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
         /// Include the initializer for this property in the partial entity.
         /// </summary>
         [AttributeUsage(AttributeTargets.Property)]
-        public class IncludeInitializerAttribute : Attribute
+        internal sealed class IncludeInitializerAttribute : Attribute
         {
         }
 
@@ -75,7 +76,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
         /// <typeparam name="TOriginal">The original type</typeparam>
         /// <typeparam name="TPartial">The partial type</typeparam>
         [AttributeUsage(AttributeTargets.Property)]
-        public class PartialReferenceAttribute<TOriginal, TPartial> : Attribute
+        internal sealed class PartialReferenceAttribute<TOriginal, TPartial> : Attribute
         {
             /// <summary>
             /// Instantiate a partial reference attribute
@@ -90,7 +91,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
         /// Replace a type with a partial reference
         /// </summary>
         [AttributeUsage(AttributeTargets.Property)]
-        public class PartialReferenceAttribute : Attribute
+        internal sealed class PartialReferenceAttribute : Attribute
         {
             /// <summary>
             /// Instantiate a partial reference attribute
@@ -102,9 +103,9 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             {
             }
         }
-
         #nullable disable
     }
+    #endif
     """;
 
     /// <inheritdoc />
