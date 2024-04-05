@@ -18,5 +18,5 @@ public partial record PartialModel
     /// <summary>
     /// The name
     /// </summary>
-    public string? Name { get; set; } = "John Doe";
+    public string Name { get; set; } = "John Doe";
 }

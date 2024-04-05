@@ -20,5 +20,5 @@ public readonly partial record struct PartialModel
         Name = name;
     }
 
-    public string? Name { get; init; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
 }
