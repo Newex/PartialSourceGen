@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using PartialSourceGen.Tests.Configuration;
+using VerifyTests;
 using Xunit.Categories;
 using static VerifyXunit.Verifier;
 
@@ -11,97 +13,11 @@ namespace PartialSourceGen.Tests;
 [SnapshotTest]
 public class StructSnapshotTests
 {
-    [Fact]
-    public Task Without_summary_or_required_properties()
+    private static VerifySettings Settings([CallerMemberName] string method = "")
     {
-        var source = """
-        using PartialSourceGen;
-
-        namespace MySpace;
-
-        [Partial]
-        public struct Model
-        {
-            public string Name { get; set; }
-        }
-        """;
-
-        var runResult = TestHelper.GeneratorDriver(source)
-                                  .GetRunResult()
-                                  .GetSecondResult();
-        return Verify(runResult).UseDirectory("Results/Snapshots");
-    }
-
-    [Fact]
-    public Task With_an_inherited_summary()
-    {
-        var source = """
-        using PartialSourceGen;
-
-        namespace MySpace;
-
-        /// <summary>
-        /// An entity model
-        /// </summary>
-        [Partial]
-        public struct Model
-        {
-            /// <summary>
-            /// The name
-            /// </summary>
-            public string Name { get; set; }
-        }
-        """;
-
-        var runResult = TestHelper.GeneratorDriver(source)
-                                  .GetRunResult()
-                                  .GetSecondResult();
-        return Verify(runResult).UseDirectory("Results/Snapshots");
-    }
-
-    [Fact]
-    public Task With_required_property()
-    {
-        var source = """
-        using PartialSourceGen;
-
-        namespace MySpace;
-
-        [Partial(IncludeRequiredProperties = true)]
-        public struct Model
-        {
-            public required string Name { get; set; }
-        }
-        """;
-
-        var runResult = TestHelper.GeneratorDriver(source)
-                                  .GetRunResult()
-                                  .GetSecondResult();
-        return Verify(runResult).UseDirectory("Results/Snapshots");
-    }
-
-    [Fact]
-    public Task Custom_summary()
-    {
-        var source = """
-        using PartialSourceGen;
-
-        namespace MySpace;
-
-        /// <summary>
-        /// An entity model
-        /// </summary>
-        [Partial(Summary = "Custom summary")]
-        public struct Model
-        {
-            public string Name { get; set; }
-        }
-        """;
-
-        var runResult = TestHelper.GeneratorDriver(source)
-                                  .GetRunResult()
-                                  .GetSecondResult();
-        return Verify(runResult).UseDirectory("Results/Snapshots");
+        var settings = new VerifySettings();
+        settings.UseFileName(method);
+        return settings;
     }
 
     [Fact]
@@ -125,11 +41,12 @@ public class StructSnapshotTests
         var runResult = TestHelper.GeneratorDriver(source)
                                   .GetRunResult()
                                   .GetSecondResult();
-        return Verify(runResult).UseDirectory("Results/Snapshots");
+        var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Structs");
     }
 
     [Fact]
-    public Task With_generic_type_parameters()
+    public Task Custom_summary()
     {
         var source = """
         using PartialSourceGen;
@@ -139,21 +56,26 @@ public class StructSnapshotTests
         /// <summary>
         /// An entity model
         /// </summary>
-        [Partial]
-        public struct Model<T>
+        [Partial(Summary = "Custom summary")]
+        public struct Model
         {
-            public T Name { get; set; }
+            /// <summary>
+            /// input:
+            ///    public string Name { get; set; }
+            /// </summary
+            public string Name { get; set; }
         }
         """;
 
         var runResult = TestHelper.GeneratorDriver(source)
                                   .GetRunResult()
                                   .GetSecondResult();
-        return Verify(runResult).UseDirectory("Results/Snapshots");
+        var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Structs");
     }
 
     [Fact]
-    public Task With_generic_type_parameters_and_type_constraint()
+    public Task Exclude_properties()
     {
         var source = """
         using PartialSourceGen;
@@ -162,19 +84,31 @@ public class StructSnapshotTests
 
         /// <summary>
         /// An entity model
+        /// input property:
+        ///    [ExcludePartial]
+        ///    public string Name { get; set; } = "John Doe";
         /// </summary>
         [Partial]
-        public struct Model<T>
-        where T : notnull
+        public struct Model
         {
-            public T Name { get; set; }
+            /// <summary>
+            /// DO NOT INCLUDE
+            /// </summary>
+            [ExcludePartial]
+            public string Name { get; set; } = "John Doe";
+
+            /// <summary>
+            /// Only 1 property out of 2 originals
+            /// </summary>
+            public int ID { get; init; } = 0;
         }
         """;
 
         var runResult = TestHelper.GeneratorDriver(source)
                                   .GetRunResult()
                                   .GetSecondResult();
-        return Verify(runResult).UseDirectory("Results/Snapshots");
+        var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Structs");
     }
 
     [Fact]
@@ -192,7 +126,9 @@ public class StructSnapshotTests
         public struct Model
         {
             /// <summary>
-            /// The name
+            /// input:
+            ///    [IncludeInitializer]
+            ///    public string Name { get; set; } = "John Doe";
             /// </summary>
             [IncludeInitializer]
             public string Name { get; set; } = "John Doe";
@@ -202,6 +138,151 @@ public class StructSnapshotTests
         var runResult = TestHelper.GeneratorDriver(source)
                                   .GetRunResult()
                                   .GetSecondResult();
-        return Verify(runResult).UseDirectory("Results/Snapshots");
+        var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Structs");
+    }
+
+    [Fact]
+    public Task With_an_inherited_summary()
+    {
+        var source = """
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        /// <summary>
+        /// The inherited summary
+        /// </summary>
+        [Partial]
+        public struct Model
+        {
+            /// <summary>
+            /// input:
+            ///    public string Name { get; set; }
+            /// </summary
+            public string Name { get; set; }
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Structs");
+    }
+
+    [Fact]
+    public Task With_generic_type_parameters()
+    {
+        var source = """
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        /// <summary>
+        /// An entity model
+        /// </summary>
+        [Partial]
+        public struct Model<T>
+        {
+            /// <summary>
+            /// input:
+            ///    public T Name { get; set; }
+            /// </summary
+            public T Name { get; set; }
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Structs");
+    }
+
+    [Fact]
+    public Task With_generic_type_parameters_and_type_constraint()
+    {
+        var source = """
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        /// <summary>
+        /// An entity model
+        /// Class:
+        ///    public struct Model<T>
+        ///    where T : notnull
+        /// </summary>
+        [Partial]
+        public struct Model<T>
+        where T : notnull
+        {
+            /// <summary>
+            /// input:
+            ///    public T Name { get; set; }
+            /// </summary
+            public T Name { get; set; }
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Structs");
+    }
+
+    [Fact]
+    public Task With_required_property()
+    {
+        var source = """
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        [Partial(IncludeRequiredProperties = true)]
+        public struct Model
+        {
+            /// <summary>
+            /// IncludeRequiredProperties = true
+            /// input:
+            ///    public required string Name { get; set; }
+            /// </summary
+            public required string Name { get; set; }
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Structs");
+    }
+
+    [Fact]
+    public Task Without_summary_or_required_properties()
+    {
+        var source = """
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        [Partial]
+        public struct Model
+        {
+            /// <summary>
+            /// input:
+            ///    public string Name { get; set; }
+            /// </summary>
+            public string Name { get; set; }
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Structs");
     }
 }

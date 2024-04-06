@@ -28,11 +28,9 @@ public class DebuggingTests
             {
                 Person() { }
 
-                [PartialReference<Other, PartialOther>]
-                public Other Other { get; set; }
-
-                [PartialReference(typeof(Other), typeof(PartialOther), "PartialOthers")]
-                public Dictionary<Other, List<Dictionary<int, Other>>> Others { get; set; }
+                [Required]
+                [Other, ExcludePartial]
+                public string NotMe { get; set; }
             }
             """);
 
