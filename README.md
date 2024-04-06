@@ -181,9 +181,16 @@ partial record PartialPerson
 }
 ```
 
-## Fine tune properties using attributes
+## Property attributes
 
-### Include property initializer
+| Attribute | Short explanation |
+|-----------|-------------------|
+| `IncludeInitializer` | Includes property initializer |
+| `PartialReference<TOriginal, TPartial>` | Replaces a type for a partial type |
+| `ExcludePartial` | Excludes a property |
+
+
+### IncludeInitializer
 A property initializer in the partial entity can be included by annotating the property with `IncludeInitializer` attribute.
 
 Example:
@@ -209,7 +216,7 @@ public record PartialPerson
 
 The default behaviour is to exclude property initializers. When a property is included with its initializer, the type will be retained if it is non nullable.
 
-### Reference partial other partial entities
+### PartialReference
 To reference another partial object, add the `PartialReference` attribute to the property.
 
 If using c# 11.0 (dotnet 7.0 or newer) you can use the generic version, like so:
@@ -259,6 +266,30 @@ public record Person
     public List<Post> Posts { get; set; } = [];
 }
 ```
+
+### ExcludePartial
+
+To exclude a property from being included in the generated output, annotate the property with `ExcludePartial` attribute.
+
+```csharp
+// Input: Person.cs
+[Partial]
+public record Person
+{
+    [ExcludePartial]
+    public string Name { get; set; } = string.Empty;
+}
+```
+Produces:
+
+```csharp
+// Output: PartialPerson.g.cs
+public record PartialPerson
+{
+}
+```
+
+By default all properties will be included unless specifically excluded.
 
 ## Functionalities
 
