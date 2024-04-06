@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -103,6 +103,13 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             {
             }
         }
+        /// <summary>
+        /// Excludes a property from being included in the generated partial entity
+        /// </summary>
+        [AttributeUsage(AttributeTargets.Property)]
+        internal sealed class ExcludePartialAttribute : Attribute
+        {
+        }
         #nullable disable
     }
     #endif
@@ -169,6 +176,14 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
 
         foreach (var prop in originalProps)
         {
+            var excludeAttribute = prop.AttributeLists
+                                                  .SelectMany(ats => ats.DescendantNodes().OfType<IdentifierNameSyntax>())
+                                                  .FirstOrDefault(n => n.Identifier.ValueText.StartsWith("ExcludePartial"));
+            if (excludeAttribute != null)
+            {
+                continue;
+            }
+
             var includeInitializerAttribute = prop.AttributeLists
                                                   .SelectMany(ats => ats.DescendantNodes().OfType<IdentifierNameSyntax>())
                                                   .FirstOrDefault(n => n.Identifier.ValueText.StartsWith("IncludeInitializer"));
