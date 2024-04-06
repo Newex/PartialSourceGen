@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -217,18 +217,18 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 candidateProp = SyntaxFactory
                         .PropertyDeclaration(propertyType, propName)
                         .WithModifiers(SyntaxFactory.TokenList(modifiers))
-                        .WithLeadingTrivia(prop.GetLeadingTrivia())
-                        .WithAccessorList(prop.AccessorList);
+                        .WithAccessorList(prop.AccessorList)
+                        .WithLeadingTrivia(prop.GetLeadingTrivia());
             }
             else
             {
                 candidateProp = SyntaxFactory
                         .PropertyDeclaration(propertyType, propName)
-                        .WithLeadingTrivia(prop.GetLeadingTrivia())
                         .WithModifiers(SyntaxFactory.TokenList(modifiers))
                         .WithAccessorList(prop.AccessorList)
                         .WithExpressionBody(prop.ExpressionBody)
-                        .WithSemicolonToken(prop.SemicolonToken);
+                        .WithSemicolonToken(prop.SemicolonToken)
+                        .WithLeadingTrivia(prop.GetLeadingTrivia());
             }
 
             // Get partial reference types
