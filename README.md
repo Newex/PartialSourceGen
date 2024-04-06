@@ -49,12 +49,11 @@ Add nuget package `dotnet add package PartialSourceGen` to your project and ensu
 ```
 
 # Why
-When you have an API that takes in some model, but you don't need to specify all the properties, you can just use this library.  
+When you have an API that takes in some model, but you don't need to specify all the properties, you can just use this library.
+
 OR you can just write the partial model yourself.
 
-The advantage with source generated models is that this will be in-sync with your actual model without requiring you to  
-update both the actual model and the partial model every time you make changes to the actual model.
-
+The advantage with source generated models is that this will be in-sync with your actual model without requiring you to update both the actual model and the partial model every time you make changes to the actual model.
 
 Example:
 
@@ -172,7 +171,9 @@ Add custom method:
 // PartialPerson.cs
 using System;
 
-record partial PartialPerson
+namespace Person;
+
+partial record PartialPerson
 {
     int AgeInDogYears()
     {
@@ -181,9 +182,16 @@ record partial PartialPerson
 }
 ```
 
-## Fine tune properties using attributes
+## Property attributes
 
-### Include property initializer
+| Attribute | Short explanation |
+|-----------|-------------------|
+| `IncludeInitializer` | Includes property initializer |
+| `PartialReference<TOriginal, TPartial>` | Replaces a type for a partial type |
+| `ExcludePartial` | Excludes a property |
+
+
+### IncludeInitializer
 A property initializer in the partial entity can be included by annotating the property with `IncludeInitializer` attribute.
 
 Example:
@@ -209,7 +217,7 @@ public record PartialPerson
 
 The default behaviour is to exclude property initializers. When a property is included with its initializer, the type will be retained if it is non nullable.
 
-### Reference partial other partial entities
+### PartialReference
 To reference another partial object, add the `PartialReference` attribute to the property.
 
 If using c# 11.0 (dotnet 7.0 or newer) you can use the generic version, like so:
@@ -260,6 +268,30 @@ public record Person
 }
 ```
 
+### ExcludePartial
+
+To exclude a property from being included in the generated output, annotate the property with `ExcludePartial` attribute.
+
+```csharp
+// Input: Person.cs
+[Partial]
+public record Person
+{
+    [ExcludePartial]
+    public string Name { get; set; } = string.Empty;
+}
+```
+Produces:
+
+```csharp
+// Output: PartialPerson.g.cs
+public record PartialPerson
+{
+}
+```
+
+By default all properties will be included unless specifically excluded.
+
 ## Functionalities
 
 This source generator will do the following:
@@ -277,7 +309,5 @@ This source generator will do the following:
 * The cookbook: https://github.com/dotnet/roslyn/blob/main/docs/features/incremental-generators.cookbook.md
 
 # Future improvements / ideas
-- [ ] Does this work in a large project? Using `IIncrementalSourceGenerator` should be faster for the IDE? I don't know.
-- [ ] Somehow add a custom method to the generated partial entity that can create the actual model with default values for the missing properties.
 - [ ] What about conflicting classes or files? Not currently handled
-- [ ] Currently does not check if `Required` attribute comes from any particular namespace.
+- [ ] Custom namespace for partial objects?

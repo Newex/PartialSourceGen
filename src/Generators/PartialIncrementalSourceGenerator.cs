@@ -103,6 +103,13 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             {
             }
         }
+        /// <summary>
+        /// Excludes a property from being included in the generated partial entity
+        /// </summary>
+        [AttributeUsage(AttributeTargets.Property)]
+        internal sealed class ExcludePartialAttribute : Attribute
+        {
+        }
         #nullable disable
     }
     #endif
@@ -169,6 +176,14 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
 
         foreach (var prop in originalProps)
         {
+            var excludeAttribute = prop.AttributeLists
+                                                  .SelectMany(ats => ats.DescendantNodes().OfType<IdentifierNameSyntax>())
+                                                  .FirstOrDefault(n => n.Identifier.ValueText.StartsWith("ExcludePartial"));
+            if (excludeAttribute != null)
+            {
+                continue;
+            }
+
             var includeInitializerAttribute = prop.AttributeLists
                                                   .SelectMany(ats => ats.DescendantNodes().OfType<IdentifierNameSyntax>())
                                                   .FirstOrDefault(n => n.Identifier.ValueText.StartsWith("IncludeInitializer"));
@@ -217,18 +232,18 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 candidateProp = SyntaxFactory
                         .PropertyDeclaration(propertyType, propName)
                         .WithModifiers(SyntaxFactory.TokenList(modifiers))
-                        .WithLeadingTrivia(prop.GetLeadingTrivia())
-                        .WithAccessorList(prop.AccessorList);
+                        .WithAccessorList(prop.AccessorList)
+                        .WithLeadingTrivia(prop.GetLeadingTrivia());
             }
             else
             {
                 candidateProp = SyntaxFactory
                         .PropertyDeclaration(propertyType, propName)
-                        .WithLeadingTrivia(prop.GetLeadingTrivia())
                         .WithModifiers(SyntaxFactory.TokenList(modifiers))
                         .WithAccessorList(prop.AccessorList)
                         .WithExpressionBody(prop.ExpressionBody)
-                        .WithSemicolonToken(prop.SemicolonToken);
+                        .WithSemicolonToken(prop.SemicolonToken)
+                        .WithLeadingTrivia(prop.GetLeadingTrivia());
             }
 
             // Get partial reference types
