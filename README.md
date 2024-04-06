@@ -172,7 +172,7 @@ Add custom method:
 // PartialPerson.cs
 using System;
 
-record partial PartialPerson
+partial record PartialPerson
 {
     int AgeInDogYears()
     {
