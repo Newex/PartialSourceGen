@@ -29,8 +29,8 @@ public class DebuggingTests
                 Person() { }
 
                 [Required]
-                [Other, ExcludePartial]
-                public string NotMe { get; set; }
+                [Other, ForceNull]
+                public required string Me { get; set; }
             }
             """);
 
