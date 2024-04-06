@@ -189,6 +189,7 @@ partial record PartialPerson
 | `IncludeInitializer` | Includes property initializer |
 | `PartialReference<TOriginal, TPartial>` | Replaces a type for a partial type |
 | `ExcludePartial` | Excludes a property |
+| `ForceNull` | Force a required property to be nullable |
 
 
 ### IncludeInitializer
@@ -291,6 +292,30 @@ public record PartialPerson
 ```
 
 By default all properties will be included unless specifically excluded.
+
+### ForceNull
+
+This will force a property to be nullable. When a property has the `required` keyword and the class has `IncludeRequiredProperties` set to true - this will override it, and force the property to be nullable.
+
+Or if the property contains an initializer and is marked with `IncludeInitializer`, this will force the property to be nullable again.
+
+```csharp
+[Partial(IncludeRequiredProperties = true)]
+public record Person
+{
+    [IncludeInitializer, ForceNull]
+    public required string Name { get; set; } = string.Empty;
+}
+```
+
+Will produce:
+
+```csharp
+public partial record PartialPerson
+{
+    public required string? Name { get; set; } = string.Empty;
+}
+```
 
 ## Functionalities
 
