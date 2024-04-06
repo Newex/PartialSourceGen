@@ -49,12 +49,11 @@ Add nuget package `dotnet add package PartialSourceGen` to your project and ensu
 ```
 
 # Why
-When you have an API that takes in some model, but you don't need to specify all the properties, you can just use this library.  
+When you have an API that takes in some model, but you don't need to specify all the properties, you can just use this library.
+
 OR you can just write the partial model yourself.
 
-The advantage with source generated models is that this will be in-sync with your actual model without requiring you to  
-update both the actual model and the partial model every time you make changes to the actual model.
-
+The advantage with source generated models is that this will be in-sync with your actual model without requiring you to update both the actual model and the partial model every time you make changes to the actual model.
 
 Example:
 
@@ -171,6 +170,8 @@ Add custom method:
 ```csharp
 // PartialPerson.cs
 using System;
+
+namespace Person;
 
 partial record PartialPerson
 {
@@ -309,3 +310,4 @@ This source generator will do the following:
 
 # Future improvements / ideas
 - [ ] What about conflicting classes or files? Not currently handled
+- [ ] Custom namespace for partial objects?
