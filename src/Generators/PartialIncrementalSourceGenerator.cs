@@ -110,6 +110,13 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
         internal sealed class ExcludePartialAttribute : Attribute
         {
         }
+        /// <summary>
+        /// Force a property to be nullable
+        /// </summary>
+        [AttributeUsage(AttributeTargets.Property)]
+        internal sealed class ForceNullAttribute : Attribute
+        {
+        }
         #nullable disable
     }
     #endif
@@ -200,8 +207,9 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                                                    .Any(s => s.StartsWith("Required", System.StringComparison.OrdinalIgnoreCase));
                 var hasRequired = prop.Modifiers.Any(m => m.IsKind(SyntaxKind.RequiredKeyword));
                 var keepType = hasRequired || hasRequiredAttribute || includeInitializer;
+                var forceNull = prop.AttributeLists.SelectMany(attrs => attrs.Attributes.Select(a => a.Name.GetText().ToString())).Any(s => s.StartsWith("ForceNull"));
 
-                if (keepType)
+                if (keepType && !forceNull)
                 {
                     // Retain original type when
                     // 1. has Required attribute

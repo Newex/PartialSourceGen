@@ -302,6 +302,25 @@ This source generator will do the following:
 - [x] Any methods or fields that are referenced from a property will be included in the partial class
 - [x] If the input is a struct, and contains property initializers then all the constructors and their references to fields and methods will be included.
 
+# Warning when using InternalsVisibleTo
+If you use the `InternalsVisibleTo` to a project that contains the `PartialSourceGen` library you will get a warning that you have a conflict `CS0436`.
+
+This is because in both projects the source code for the `PartialSourceGen` attributes will be injected, thus creating duplicate versions of the same files.
+
+To fix this you can omit the auto-generation of the attributes by including the following constant in your csproj:
+
+```xml
+<!-- File: myproject.csproj -->
+<Project Sdk="Microsoft.NET.Sdk">
+    <!-- Excluded other xml elements -->
+    <PropertyGroup>
+        <DefineConstants>PARTIALSOURCEGEN_EXCLUDE_ATTRIBUTES</DefineConstants>
+    </PropertyGroup>
+</Project>
+```
+
+To add the attributes you can either recreate the attributes yourself, or use the package `PartialSourceGen.Attributes` from nuget.
+
 # References
 
 * The typescript `Partial` utility type: https://www.typescriptlang.org/docs/handbook/utility-types.html#partialtype
