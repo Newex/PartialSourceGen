@@ -219,6 +219,7 @@ public static class Parsers
     public static SyntaxNode FilterOutEntitiesExcept(this SyntaxNode root, SyntaxNode entityToKeep)
     {
         var typeDefinitions = root.DescendantNodes().OfType<BaseTypeDeclarationSyntax>();
+
         foreach (var t in typeDefinitions)
         {
             if (!t.IsEquivalentTo(entityToKeep))
