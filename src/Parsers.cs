@@ -218,7 +218,7 @@ public static class Parsers
     /// <returns>The root node with only the entity to keep as a member node</returns>
     public static SyntaxNode FilterOutEntitiesExcept(this SyntaxNode root, SyntaxNode entityToKeep)
     {
-        var typeDefinitions = root.DescendantNodes().OfType<TypeDeclarationSyntax>();
+        var typeDefinitions = root.DescendantNodes().OfType<BaseTypeDeclarationSyntax>();
 
         foreach (var t in typeDefinitions)
         {
@@ -231,7 +231,7 @@ public static class Parsers
                     return root;
                 }
 
-                root = newNode;
+                return FilterOutEntitiesExcept(newNode, entityToKeep);
             }
         }
 
