@@ -564,4 +564,90 @@ public class ClassSnapshotTests
         var settings = Settings();
         return Verify(runResult, settings).UseDirectory("Results/Classes");
     }
+
+    [Fact]
+    public Task Partial_class_should_have_all_members_generated()
+    {
+        var file1 = """
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        [Partial]
+        public partial class Model
+        {
+            /// <summary>
+            /// input:
+            ///    public string Name { get; set; }
+            /// </summary>
+            public string Name { get; set; }
+        }
+        """;
+
+        var file2 = """
+        namespace MySpace;
+
+        public partial class Model
+        {
+            /// <summary>
+            /// input:
+            ///    public int Id { get; set; }
+            /// </summary>
+            public int Id { get; set; }
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver([file1, file2])
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Classes");
+    }
+
+    [Fact]
+    public Task Inherited_partial_should_include_members()
+    {
+        var file1 = """
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        [Partial]
+        public class Model : Entity
+        {
+            /// <summary>
+            /// input:
+            ///    public string Name { get; set; }
+            /// </summary>
+            public string Name { get; set; }
+        }
+        """;
+
+        var file2 = """
+        namespace MySpace;
+
+        public class Entity : Base
+        {
+            /// <summary>
+            /// input:
+            ///    public int Id { get; set; }
+            /// </summary>
+            public int Id { get; set; }
+        }
+
+        public class Base
+        {
+            /// <summary>
+            /// From Base-class
+            /// </summary>
+            public Guid CommonId { get; set; }
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver([file1, file2])
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Classes");
+    }
 }

@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using PartialSourceGen.Generators;
@@ -16,6 +18,29 @@ public static class TestHelper
         var compilation = CSharpCompilation.Create(
             assemblyName: "Tests",
             syntaxTrees: [syntaxTree],
+            references: [reference]);
+
+        var generator = new PartialIncrementalSourceGenerator();
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
+
+        return driver.RunGenerators(compilation);
+    }
+
+    public static GeneratorDriver GeneratorDriver(IEnumerable<string> sources)
+    {
+        List<SyntaxTree> syntaxTrees = [];
+        foreach (var source in sources)
+        {
+            var syntaxTree = CSharpSyntaxTree.ParseText(source);
+            syntaxTrees.Add(syntaxTree);
+        }
+
+        var reference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
+
+        var compilation = CSharpCompilation.Create(
+            assemblyName: "Tests",
+            syntaxTrees: syntaxTrees,
             references: [reference]);
 
         var generator = new PartialIncrementalSourceGenerator();
