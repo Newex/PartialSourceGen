@@ -38,29 +38,4 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="ClassSnapshotTests.Simple_record_without_summary_or_required_properties.received.txt">
-      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
-      <DependentUpon>ClassSnapshotTests.cs</DependentUpon>
-    </None>
-    <None Update="ClassSnapshotTests.Simple_record_without_summary_or_required_properties.verified.txt">
-      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
-      <DependentUpon>ClassSnapshotTests.cs</DependentUpon>
-    </None>
-    <None Update="StructSnapshotTests.Simple_record_without_summary_or_required_properties.received.txt">
-      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
-      <DependentUpon>StructSnapshotTests.cs</DependentUpon>
-    </None>
-    <None Update="StructSnapshotTests.Simple_record_without_summary_or_required_properties.verified.txt">
-      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
-      <DependentUpon>StructSnapshotTests.cs</DependentUpon>
-    </None>
-    <None Update="RecordSnapshotTests.Simple_record_without_summary_or_required_properties.verified.txt">
-      <DependentUpon>RecordSnapshotTests.cs</DependentUpon>
-    </None>
-    <None Update="RecordSnapshotTests.Simple_record_without_summary_or_required_properties.received.txt">
-      <DependentUpon>RecordSnapshotTests.cs</DependentUpon>
-    </None>
-  </ItemGroup>
-
 </Project>
