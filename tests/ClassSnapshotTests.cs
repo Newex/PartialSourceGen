@@ -538,4 +538,30 @@ public class ClassSnapshotTests
         var settings = Settings();
         return Verify(runResult, settings).UseDirectory("Results/Classes");
     }
+
+    [Fact]
+    public Task Partial_class_should_have_source_generation()
+    {
+        var source = """
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        [Partial]
+        public partial class Model
+        {
+            /// <summary>
+            /// input:
+            ///    public string Name { get; set; }
+            /// </summary>
+            public string Name { get; set; }
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Classes");
+    }
 }
