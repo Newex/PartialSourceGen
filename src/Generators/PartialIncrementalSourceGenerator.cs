@@ -148,10 +148,18 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
         }
 
         var root = context.SemanticModel.SyntaxTree.GetRoot(token);
-        var props = context.TargetNode.DescendantNodes().OfType<PropertyDeclarationSyntax>();
-        if (!props.Any())
+
+        // Code copied from:
+        // https://github.com/Newex/PartialSourceGen/issues/14#issue-2307071834
+        List<PropertyDeclarationSyntax> props = [];
+        for (var currentType = nameSymbol; currentType != null; currentType = currentType.BaseType)
         {
-            return null;
+            var newProps = currentType.GetMembers()
+                .OfType<IPropertySymbol>()
+                .SelectMany(s => s.DeclaringSyntaxReferences)
+                .Select(s => s.GetSyntax())
+                .OfType<PropertyDeclarationSyntax>();
+            props.AddRange(newProps);
         }
 
         var name = nameSymbol.Name;
@@ -165,7 +173,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             includeRequired,
             root,
             node,
-            props.ToArray()
+            [.. props]
         );
     }
 
