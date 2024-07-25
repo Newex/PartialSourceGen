@@ -33,4 +33,12 @@ public static class TestHelper
         var name = result.Results[0].GeneratedSources[1].HintName;
         return new("cs", source, Path.GetFileNameWithoutExtension(name));
     }
+
+    public static Target GetThirdResult(this GeneratorDriverRunResult result)
+    {
+        // Usually the first result will be the PartialAttribute.g.cs code.
+        var source = result.Results[0].GeneratedSources[2].SourceText.ToString();
+        var name = result.Results[0].GeneratedSources[2].HintName;
+        return new("cs", source, Path.GetFileNameWithoutExtension(name));
+    }
 }
