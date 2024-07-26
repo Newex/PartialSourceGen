@@ -16,3 +16,6 @@ The accepted result can be found in the folder `Results`.
 * put a breakpoint
 * run any snapshot test
 * or use the debugging test class with your own custom source code input.
+
+# See wiki
+https://github.com/Newex/PartialSourceGen/wiki/Snapshot-testing
