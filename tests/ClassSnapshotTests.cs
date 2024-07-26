@@ -650,4 +650,33 @@ public class ClassSnapshotTests
         var settings = Settings();
         return Verify(runResult, settings).UseDirectory("Results/Classes");
     }
+
+    [Fact]
+    public Task Should_include_extra_attributes_when_specified()
+    {
+        var source = """
+        using System.Text.Json.Serialization;
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        [Partial(IncludeExtraAttributes = true)]
+        public class Model
+        {
+            /// <summary>
+            /// input:
+            ///    public string Name { get; set; }
+            /// </summary>
+            [IncludeInitializer]
+            [JsonPropertyName("myName")]
+            public string Name { get; set; } = "John Doe";
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Classes");
+    }
 }
