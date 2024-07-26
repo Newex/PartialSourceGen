@@ -731,4 +731,56 @@ public class ClassSnapshotTests
         var settings = Settings();
         return Verify(runResult, settings).UseDirectory("Results/Classes");
     }
+
+    [Fact]
+    public Task Should_include_extra_attributes_from_partial_files()
+    {
+        var file1 = """
+        using System.Text.Json.Serialization;
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        [Partial(IncludeExtraAttributes = true)]
+        public partial class Model
+        {
+            /// <summary>
+            /// input:
+            ///    public string Name { get; set; }
+            /// </summary>
+            [IncludeInitializer]
+            [JsonPropertyName("myName")]
+            public string Name { get; set; } = "John Doe";
+        }
+        """;
+
+        var file2 = """
+        namespace MySpace;
+
+        public partial class Model
+        {
+            /// <summary>
+            /// input:
+            ///    public int Id { get; set; }
+            /// </summary>
+            [JsonPropertyName("id")]
+            public int Id { get; set; }
+        }
+
+        public partial class Model
+        {
+            /// <summary>
+            /// From Base-class
+            /// </summary>
+            [JsonPropertyName("commonId")]
+            public Guid CommonId { get; set; }
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver([file1, file2])
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Classes");
+    }
 }
