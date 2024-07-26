@@ -59,6 +59,12 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             /// If not specified, the naming convection will be Partial[ClassName]
             /// </summary>
             public string? PartialClassName { get; set; }
+
+            /// <summary>
+            /// If true, any attribute on properties will be included in the partial
+            /// entity. Default false.
+            /// </summary>
+            public bool IncludeExtraAttributes { get; set; }
         }
 
         /// <summary>
@@ -122,6 +128,13 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
     #endif
     """;
 
+    private static readonly List<string> partialAttributeNamesArray = [
+        "IncludeInitializer",
+        "PartialReference",
+        "ExcludePartial",
+        "ForceNull"
+    ];
+
     /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -167,10 +180,12 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
         var node = context.TargetNode;
         var summary = context.GetSummaryText();
         var includeRequired = context.GetIncludeRequiredProperties();
+        var includeExtra = context.GetIncludeExtraAttributesProperties();
         return new(
             givenName ?? ("Partial" + name),
             summary,
             includeRequired,
+            includeExtra,
             root,
             node,
             [.. props]
@@ -184,7 +199,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             return;
         }
 
-        var (name, summaryTxt, includeRequired, root, node, originalProps) = source.GetValueOrDefault();
+        var (name, summaryTxt, includeRequired, includeExtra, root, node, originalProps) = source.GetValueOrDefault();
         List<PropertyDeclarationSyntax> optionalProps = [];
         Dictionary<string, MemberDeclarationSyntax> propMembers = [];
         var hasPropertyInitializer = false;
@@ -233,11 +248,35 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
 
             var propName = prop.Identifier.ValueText.Trim();
             IEnumerable<SyntaxToken> modifiers = prop.Modifiers;
+            List<AttributeListSyntax> keepAttributes = [];
 
             if (!includeRequired)
             {
                 // Remove the required keyword
                 modifiers = prop.Modifiers.Where(m => !m.IsKind(SyntaxKind.RequiredKeyword));
+            }
+            if (includeExtra)
+            {
+                foreach (var attrList in prop.AttributeLists)
+                {
+                    var newAttributes = new List<AttributeSyntax>();
+
+                    foreach (var attr in attrList.Attributes)
+                    {
+                        var txt = attr.Name.GetText().ToString();
+                        if (!partialAttributeNamesArray.Any(txt.StartsWith))
+                        {
+                            newAttributes.Add(attr);
+                        }
+                    }
+
+                    // If there are any attributes left, add the new attribute list to keepAttributes
+                    if (newAttributes.Any())
+                    {
+                        var newAttrList = SyntaxFactory.AttributeList(SyntaxFactory.SeparatedList(newAttributes));
+                        keepAttributes.Add(newAttrList);
+                    }
+                }
             }
 
             // A candidate for the optional property
@@ -247,6 +286,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             {
                 candidateProp = SyntaxFactory
                         .PropertyDeclaration(propertyType, propName)
+                        .WithAttributeLists(SyntaxFactory.List(keepAttributes))
                         .WithModifiers(SyntaxFactory.TokenList(modifiers))
                         .WithAccessorList(prop.AccessorList)
                         .WithLeadingTrivia(prop.GetLeadingTrivia());
@@ -255,6 +295,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             {
                 candidateProp = SyntaxFactory
                         .PropertyDeclaration(propertyType, propName)
+                        .WithAttributeLists(SyntaxFactory.List(keepAttributes))
                         .WithModifiers(SyntaxFactory.TokenList(modifiers))
                         .WithAccessorList(prop.AccessorList)
                         .WithExpressionBody(prop.ExpressionBody)
@@ -381,6 +422,7 @@ internal readonly record struct PartialInfo
         string name,
         string? summary,
         bool includeRequired,
+        bool includeAttributes,
         SyntaxNode root,
         SyntaxNode node,
         PropertyDeclarationSyntax[] properties)
@@ -388,6 +430,7 @@ internal readonly record struct PartialInfo
         Name = name;
         Summary = summary;
         IncludeRequired = includeRequired;
+        IncludeExtraAttributes = includeAttributes;
         Root = root;
         Node = node;
         Properties = properties;
@@ -396,15 +439,17 @@ internal readonly record struct PartialInfo
     public string Name { get; }
     public string? Summary { get; }
     public bool IncludeRequired { get; }
+    public bool IncludeExtraAttributes { get; }
     public SyntaxNode Root { get; }
     public SyntaxNode Node { get; }
     public PropertyDeclarationSyntax[] Properties { get; }
 
-    public void Deconstruct(out string name, out string? summary, out bool includeRequired, out SyntaxNode root, out SyntaxNode node, out PropertyDeclarationSyntax[] properties)
+    public void Deconstruct(out string name, out string? summary, out bool includeRequired, out bool includeExtraAttributes, out SyntaxNode root, out SyntaxNode node, out PropertyDeclarationSyntax[] properties)
     {
         name = Name;
         summary = Summary;
         includeRequired = IncludeRequired;
+        includeExtraAttributes = IncludeExtraAttributes;
         root = Root;
         node = Node;
         properties = Properties;

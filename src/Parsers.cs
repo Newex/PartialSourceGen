@@ -78,6 +78,26 @@ public static class Parsers
         return include is not null;
     }
 
+    /// <summary>
+    /// Extract if extra attributes should be included from partial attribute. Default false.
+    /// </summary>
+    /// <param name="context">The context.</param>
+    /// <returns>True if extra attribute annotations should be included otherwise false.</returns>
+    public static bool GetIncludeExtraAttributesProperties(this GeneratorAttributeSyntaxContext context)
+    {
+        var args = context
+            .TargetNode
+            .DescendantNodes()
+            .OfType<AttributeArgumentSyntax>();
+
+        var include = args
+            .Where(n => n.Expression.IsKind(SyntaxKind.TrueLiteralExpression))
+            .Where(n => string.Equals("IncludeExtraAttributes", n.NameEquals?.Name.Identifier.ValueText, StringComparison.Ordinal))
+            .SingleOrDefault();
+
+        return include is not null;
+    }
+
     internal static bool PropertyMemberReferences(this PropertyDeclarationSyntax propertyDeclaration, SyntaxNode node, out Dictionary<string, MemberDeclarationSyntax>? result)
     {
         var members = propertyDeclaration.DescendantNodes().OfType<IdentifierNameSyntax>();
