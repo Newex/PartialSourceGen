@@ -146,6 +146,33 @@ Console.WriteLine("Model ID: {0}", model.ID);
 **Note:**  
 That required properties can be set either via using the keyword `required` or an attribute `Required`. When including properties that are marked as required, the property will not be made nullable. They will retain their original property type, thus if the property was nullable the required property will also be nullable.
 
+### Include attribute annotations
+If the model contains properties with attributes you want to include in the partial entity, you can specify `IncludeExtraAttributes` like so:
+
+```csharp
+using System.Text.Json.Serialization;
+using PartialSourceGen;
+
+namespace MyNameSpace;
+
+[Partial(IncludeExtraAttributes = true)]
+public record Model
+{
+    [JsonPropertyName("id")]
+    public int ID { get; init; }
+}
+```
+
+This will output:
+
+```csharp
+public partial record PartialModel
+{
+    [JsonPropertyName("id")]
+    public int? ID { get; init; }
+}
+```
+
 ### Add custom methods to the partial entity
 The generated class/struct/record is a partial entity, thus it is possible to just add a method in a separate file.  
 The normal constraints and rules apply for partial classes: https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/partial-classes-and-methods
@@ -326,6 +353,8 @@ This source generator will do the following:
 - [x] The type will be retained when including initializer on a non-nullable property.
 - [x] Any methods or fields that are referenced from a property will be included in the partial class
 - [x] If the input is a struct, and contains property initializers then all the constructors and their references to fields and methods will be included.
+- [x] If the model is a partial model, all properties from the partial model will be included.
+- [x] If the model uses inheritance, all properties from ancestors will be included (except `System.Object`).
 
 # Warning when using InternalsVisibleTo
 If you use the `InternalsVisibleTo` to a project that contains the `PartialSourceGen` library you will get a warning that you have a conflict `CS0436`.
