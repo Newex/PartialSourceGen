@@ -128,4 +128,31 @@ public static class PartialEntityBuilder
         List<SyntaxToken> withPartial = [.. original.Modifiers.Where(m => !m.IsKind(SyntaxKind.PartialKeyword)), SyntaxFactory.Token(SyntaxKind.PartialKeyword)];
         return SyntaxFactory.TokenList(withPartial);
     }
+
+    /// <summary>
+    /// Determine if the property contains an attribute with the given
+    /// fully qualified type.
+    /// </summary>
+    /// <param name="propertyDeclaration">The property declaration syntax.</param>
+    /// <param name="semanticModel">The semantic model.</param>
+    /// <param name="fullyQualifiedTypeName">The fully qualified type name.</param>
+    /// <returns>True if an attribute exists with that type name otherwise false.</returns>
+    public static bool PropertyHasAttributeWithTypeName(this PropertyDeclarationSyntax propertyDeclaration, SemanticModel semanticModel, string fullyQualifiedTypeName)
+    {
+        foreach (var attributeList in propertyDeclaration.AttributeLists)
+        {
+            foreach (var attribute in attributeList.Attributes)
+            {
+                var info = semanticModel.GetTypeInfo(attribute);
+                var type = info.Type;
+                if (type is not null)
+                {
+                    var name = type.ToString();
+                    return name == fullyQualifiedTypeName;
+                }
+            }
+        }
+
+        return false;
+    }
 }

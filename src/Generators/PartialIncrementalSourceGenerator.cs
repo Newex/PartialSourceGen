@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -186,6 +186,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             summary,
             includeRequired,
             includeExtra,
+            context.SemanticModel,
             root,
             node,
             [.. props]
@@ -199,7 +200,14 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             return;
         }
 
-        var (name, summaryTxt, includeRequired, includeExtra, root, node, originalProps) = source.GetValueOrDefault();
+        var (name,
+             summaryTxt,
+             includeRequired,
+             includeExtra,
+             semanticModel,
+             root,
+             node,
+             originalProps) = source.GetValueOrDefault();
         List<PropertyDeclarationSyntax> optionalProps = [];
         Dictionary<string, MemberDeclarationSyntax> propMembers = [];
         var hasPropertyInitializer = false;
@@ -226,8 +234,9 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             }
             else
             {
-                var hasRequiredAttribute = prop.AttributeLists.SelectMany(attrs => attrs.Attributes.Select(a => a.Name.GetText().ToString()))
-                                                   .Any(s => s.StartsWith("Required", System.StringComparison.OrdinalIgnoreCase));
+                // var hasRequiredAttribute = prop.AttributeLists.SelectMany(attrs => attrs.Attributes.Select(a => a.Name.GetText().ToString()))
+                //                                    .Any(s => s.StartsWith("Required", System.StringComparison.OrdinalIgnoreCase));
+                var hasRequiredAttribute = prop.PropertyHasAttributeWithTypeName(semanticModel, "System.ComponentModel.DataAnnotations.RequiredAttribute");
                 var hasRequired = prop.Modifiers.Any(m => m.IsKind(SyntaxKind.RequiredKeyword));
                 var keepType = hasRequired || hasRequiredAttribute || includeInitializer;
                 var forceNull = prop.AttributeLists.SelectMany(attrs => attrs.Attributes.Select(a => a.Name.GetText().ToString())).Any(s => s.StartsWith("ForceNull"));
@@ -428,6 +437,7 @@ internal readonly record struct PartialInfo
     /// <param name="summary">The custom summary for the partial entity.</param>
     /// <param name="includeRequired">True if required should be included.</param>
     /// <param name="includeAttributes">True if extra attributes should be copied.</param>
+    /// <param name="model">The semantic model.</param>
     /// <param name="root">The syntax root node. The beginning of the source syntax node usually begins with using statements.</param>
     /// <param name="node">The syntax node. The class, struct or record under consideration.</param>
     /// <param name="properties">The enumerated properties in the node.</param>
@@ -436,6 +446,7 @@ internal readonly record struct PartialInfo
         string? summary,
         bool includeRequired,
         bool includeAttributes,
+        SemanticModel model,
         SyntaxNode root,
         SyntaxNode node,
         PropertyDeclarationSyntax[] properties)
@@ -444,6 +455,7 @@ internal readonly record struct PartialInfo
         Summary = summary;
         IncludeRequired = includeRequired;
         IncludeExtraAttributes = includeAttributes;
+        SemanticModel = model;
         Root = root;
         Node = node;
         Properties = properties;
@@ -471,6 +483,8 @@ internal readonly record struct PartialInfo
     /// </summary>
     public bool IncludeExtraAttributes { get; }
 
+    public SemanticModel SemanticModel { get; }
+
     /// <summary>
     /// The root of the syntax, usually begins with using statements.
     /// </summary>
@@ -493,6 +507,7 @@ internal readonly record struct PartialInfo
     /// <param name="summary">The partial entity summary.</param>
     /// <param name="includeRequired">The required toggle.</param>
     /// <param name="includeExtraAttributes">The extra attributes toggle.</param>
+    /// <param name="semanticModel">The semantic model.</param>
     /// <param name="root">The root syntax.</param>
     /// <param name="node">The node syntax.</param>
     /// <param name="properties">The list of properties.</param>
@@ -501,6 +516,7 @@ internal readonly record struct PartialInfo
         out string? summary,
         out bool includeRequired,
         out bool includeExtraAttributes,
+        out SemanticModel semanticModel,
         out SyntaxNode root,
         out SyntaxNode node,
         out PropertyDeclarationSyntax[] properties)
@@ -509,6 +525,7 @@ internal readonly record struct PartialInfo
         summary = Summary;
         includeRequired = IncludeRequired;
         includeExtraAttributes = IncludeExtraAttributes;
+        semanticModel = SemanticModel;
         root = Root;
         node = Node;
         properties = Properties;
