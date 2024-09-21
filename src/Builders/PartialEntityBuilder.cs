@@ -143,7 +143,11 @@ public static class PartialEntityBuilder
         {
             foreach (var attribute in attributeList.Attributes)
             {
-                var info = semanticModel.GetTypeInfo(attribute);
+                // Can throw ArgumentException
+                // If the "Syntax node is not within the syntax tree".
+                // How to properly get the semantic model: https://github.com/dotnet/roslyn/issues/18730#issuecomment-294314178
+                var actualSemanticModel = semanticModel.Compilation.GetSemanticModel(attribute.SyntaxTree);
+                var info = actualSemanticModel.GetTypeInfo(attribute);
                 var type = info.Type;
                 if (type is not null)
                 {

@@ -755,6 +755,7 @@ public class ClassSnapshotTests
         """;
 
         var file2 = """
+        using System.Text.Json.Serialization;
         namespace MySpace;
 
         public partial class Model
@@ -777,7 +778,8 @@ public class ClassSnapshotTests
         }
         """;
 
-        var runResult = TestHelper.GeneratorDriver([file1, file2])
+        var jsonTextAssembly = typeof(System.Text.Json.JsonProperty).Assembly;
+        var runResult = TestHelper.GeneratorDriver([file1, file2], jsonTextAssembly)
                                   .GetRunResult()
                                   .GetSecondResult();
         var settings = Settings();
