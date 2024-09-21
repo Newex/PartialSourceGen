@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -128,7 +128,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
     #endif
     """;
 
-    private static readonly List<string> partialAttributeNamesArray = [
+    private static readonly List<string> PartialAttributeNamesArray = [
         "IncludeInitializer",
         "PartialReference",
         "ExcludePartial",
@@ -264,7 +264,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                     foreach (var attr in attrList.Attributes)
                     {
                         var txt = attr.Name.GetText().ToString();
-                        if (!partialAttributeNamesArray.Any(txt.StartsWith))
+                        if (!PartialAttributeNamesArray.Any(txt.StartsWith))
                         {
                             newAttributes.Add(attr);
                         }
