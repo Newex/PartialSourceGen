@@ -14,11 +14,12 @@ public static class TestHelper
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(source);
         var reference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
+        var componentModelReference = MetadataReference.CreateFromFile(typeof(System.ComponentModel.DataAnnotations.RequiredAttribute).Assembly.Location);
 
         var compilation = CSharpCompilation.Create(
             assemblyName: "Tests",
             syntaxTrees: [syntaxTree],
-            references: [reference]);
+            references: [reference, componentModelReference]);
 
         var generator = new PartialIncrementalSourceGenerator();
 
@@ -37,11 +38,12 @@ public static class TestHelper
         }
 
         var reference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
+        var componentModelReference = MetadataReference.CreateFromFile(typeof(System.ComponentModel.DataAnnotations.RequiredAttribute).Assembly.Location);
 
         var compilation = CSharpCompilation.Create(
             assemblyName: "Tests",
             syntaxTrees: syntaxTrees,
-            references: [reference]);
+            references: [reference, componentModelReference]);
 
         var generator = new PartialIncrementalSourceGenerator();
 
