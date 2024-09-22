@@ -178,4 +178,28 @@ public static class PartialEntityBuilder
             }
         }
     }
+
+    /// <summary>
+    /// Create a <see cref="TypeSyntax"/> from a type.
+    /// </summary>
+    /// <param name="type">The type.</param>
+    /// <returns>A type syntax.</returns>
+    public static TypeSyntax CreateTypeSyntax(Type type)
+    {
+        var typeName = type.FullName;
+        if (type.IsGenericType)
+        {
+            var genericTypeName = type.GetGenericTypeDefinition().FullName.Split('`')[0];
+            var genericArguments = type.GetGenericArguments();
+
+            // Recursion!
+            var genericArgsSyntax = SyntaxFactory.SeparatedList(genericArguments.Select(arg => CreateTypeSyntax(arg)));
+
+            return SyntaxFactory.GenericName(
+                    SyntaxFactory.Identifier(genericTypeName),
+                    SyntaxFactory.TypeArgumentList(genericArgsSyntax));
+        }
+
+        return SyntaxFactory.ParseTypeName(typeName);
+    }
 }
