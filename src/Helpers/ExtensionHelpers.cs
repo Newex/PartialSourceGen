@@ -99,7 +99,7 @@ public static class ExtensionHelpers
             foreach (var member in members)
             {
 
-                GetMembers(original, member, ref foundMembers);
+                Utilities.GetMembers(original, member, ref foundMembers);
             }
         }
 
@@ -177,30 +177,6 @@ public static class ExtensionHelpers
                 }
             }
         }
-    }
-
-    /// <summary>
-    /// Create a <see cref="TypeSyntax"/> from a type.
-    /// </summary>
-    /// <param name="type">The type.</param>
-    /// <returns>A type syntax.</returns>
-    public static TypeSyntax CreateTypeSyntax(Type type)
-    {
-        var typeName = type.FullName;
-        if (type.IsGenericType)
-        {
-            var genericTypeName = type.GetGenericTypeDefinition().FullName.Split('`')[0];
-            var genericArguments = type.GetGenericArguments();
-
-            // Recursion!
-            var genericArgsSyntax = SyntaxFactory.SeparatedList(genericArguments.Select(arg => CreateTypeSyntax(arg)));
-
-            return SyntaxFactory.GenericName(
-                    SyntaxFactory.Identifier(genericTypeName),
-                    SyntaxFactory.TypeArgumentList(genericArgsSyntax));
-        }
-
-        return SyntaxFactory.ParseTypeName(typeName);
     }
 
     /// <summary>
@@ -303,48 +279,10 @@ public static class ExtensionHelpers
         result = [];
         foreach (var member in members)
         {
-            GetMembers(node, member, ref result);
+            Utilities.GetMembers(node, member, ref result);
         }
 
         return result.Any();
-    }
-
-    /// <summary>
-    /// Retrieve field and method references
-    /// </summary>
-    /// <param name="node">The partial node</param>
-    /// <param name="ident">The current identifier</param>
-    /// <param name="result">The resulting found members</param>
-    public static void GetMembers(SyntaxNode node, IdentifierNameSyntax ident, ref Dictionary<string, MemberDeclarationSyntax> result)
-    {
-        var current = node.DescendantNodes()
-                          .OfType<FieldDeclarationSyntax>()
-                          .SingleOrDefault(f => f.Declaration.Variables.Any(v => v.Identifier.ValueText.Equals(ident.Identifier.ValueText)));
-
-        if (current is not null)
-        {
-            var name = ident.Identifier.ValueText;
-            result.TryAdd(name, current);
-            return;
-        }
-
-        var method = node.DescendantNodes()
-            .OfType<MethodDeclarationSyntax>()
-            .SingleOrDefault(m => m.Identifier.ValueText.Equals(ident.Identifier.ValueText));
-
-        if (method is not null)
-        {
-            // Add method
-            var name = method.Identifier.ValueText;
-            result.TryAdd(name, method);
-
-            // Check method locals for field refs
-            var locals = method.DescendantNodes().OfType<IdentifierNameSyntax>();
-            foreach (var local in locals)
-            {
-                GetMembers(node, local, ref result);
-            }
-        }
     }
 
     internal static void TryAdd(this Dictionary<string, MemberDeclarationSyntax> source, string key, MemberDeclarationSyntax value)
