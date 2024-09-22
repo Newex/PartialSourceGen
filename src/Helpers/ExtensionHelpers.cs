@@ -337,10 +337,7 @@ public static class ExtensionHelpers
         }
 
         // Only supported from NET7.0 and onwards with language version C# 11
-        // GenericNameSyntax generic = property.AttributeLists.SelectMany(ats => ats.Attributes.SelectMany(a => a.DescendantNodes())).OfType<GenericNameSyntax>().
-        //     FirstOrDefault(a => a.Identifier.ValueText.StartsWith("PartialReference"));
         var generic = attribute.DescendantNodes().OfType<GenericNameSyntax>().FirstOrDefault();
-
         if (generic is not null)
         {
             // Extract type info
