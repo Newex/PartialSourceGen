@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using PartialSourceGen.Constants;
 
 namespace PartialSourceGen.Helpers;
 
@@ -73,4 +74,15 @@ public static class Utilities
             }
         }
     }
+
+    /// <summary>
+    /// Checks whether a string is not a partial attribute.
+    /// </summary>
+    /// <param name="input">The string input.</param>
+    /// <returns>True if not a partial attribute otherwise false.</returns>
+    public static bool IsNotLocalAttribute(string input) =>
+        !(string.Equals(input, Names.IncludeInitializer)
+        || string.Equals(input, Names.PartialReference)
+        || string.Equals(input, Names.ExcludePartial)
+        || string.Equals(input, Names.PartialType));
 }

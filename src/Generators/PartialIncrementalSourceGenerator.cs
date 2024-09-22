@@ -18,20 +18,6 @@ namespace PartialSourceGen.Generators;
 [Generator]
 public class PartialIncrementalSourceGenerator : IIncrementalGenerator
 {
-    private static readonly List<string> PartialAttributeNamesArray = [
-        "PartialSourceGen.IncludeInitializerAttribute",
-        "PartialSourceGen.PartialReferenceAttribute",
-        "PartialSourceGen.ExcludePartialAttribute",
-        "PartialSourceGen.ForceNullAttribute",
-        "PartialSourceGen.PartialTypeAttribute"
-    ];
-
-    private static bool IsNotLocalAttribute(string input) =>
-        !(string.Equals(input, PartialAttributeNamesArray[0])
-        || string.Equals(input, PartialAttributeNamesArray[1])
-        || string.Equals(input, PartialAttributeNamesArray[2])
-        || string.Equals(input, PartialAttributeNamesArray[3]));
-
     /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -111,13 +97,13 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
 
         foreach (var prop in originalProps)
         {
-            var hasExcludeAttribute = prop.PropertyHasAttributeWithTypeName(semanticModel, PartialAttributeNamesArray[2]);
+            var hasExcludeAttribute = prop.PropertyHasAttributeWithTypeName(semanticModel, Names.ExcludePartial);
             if (hasExcludeAttribute)
             {
                 continue;
             }
 
-            var hasIncludeInitializer = prop.PropertyHasAttributeWithTypeName(semanticModel, PartialAttributeNamesArray[0]);
+            var hasIncludeInitializer = prop.PropertyHasAttributeWithTypeName(semanticModel, Names.IncludeInitializer);
             var isExpression = prop.ExpressionBody is not null;
             TypeSyntax propertyType;
             if (prop.Type is NullableTypeSyntax nts)
@@ -129,9 +115,23 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 var hasRequiredAttribute = prop.PropertyHasAttributeWithTypeName(semanticModel, "System.ComponentModel.DataAnnotations.RequiredAttribute");
                 var hasRequiredModifier = prop.Modifiers.Any(m => m.IsKind(SyntaxKind.RequiredKeyword));
                 var keepType = hasRequiredModifier || hasRequiredAttribute || hasIncludeInitializer;
-                var forceNull = prop.PropertyHasAttributeWithTypeName(semanticModel, PartialAttributeNamesArray[3]);
+                var forceNull = prop.PropertyHasAttributeWithTypeName(semanticModel, Names.ForceNull);
+                var hasNewType = prop.PropertyHasAttributeWithTypeName(semanticModel, Names.PartialType);
 
-                if (keepType && !forceNull)
+                if (hasNewType && hasIncludeInitializer)
+                {
+                    // TODO: Throw diagnostic error! or warning!
+                    // Unless we check that the initializer does not conflict
+                    // with the new type.
+                    // Since we are lazy, we do not want to do that now :\
+                }
+                if (hasNewType)
+                {
+                    // TODO: placeholder to stop error
+                    // Must extract type from attribute.
+                    propertyType = prop.Type;
+                }
+                else if (keepType && !forceNull)
                 {
                     // Retain original type when
                     // 1. has Required attribute
@@ -160,7 +160,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 {
                     var newAttributes = new List<AttributeSyntax>();
 
-                    var externalAttributes = attrList.FilterAttributeByName(semanticModel, IsNotLocalAttribute);
+                    var externalAttributes = attrList.FilterAttributeByName(semanticModel, Utilities.IsNotLocalAttribute);
                     foreach (var attr in externalAttributes)
                     {
                         // Should be kept
@@ -201,7 +201,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             }
 
             // Get partial reference types
-            var hasPartialReference = prop.GetPartialReferenceInfo(out var originalSource, out var partialSource, out var partialRefName);
+            var hasPartialReference = prop.GetPartialReferenceInfo(semanticModel, out var originalSource, out var partialSource, out var partialRefName);
             if (hasPartialReference)
             {
                 var partialRefProp = SyntaxFactory.ParseTypeName(partialSource!);

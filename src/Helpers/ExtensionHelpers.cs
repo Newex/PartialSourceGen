@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using PartialSourceGen.Constants;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -297,11 +298,12 @@ public static class ExtensionHelpers
     /// Get any partial reference attribute info
     /// </summary>
     /// <param name="property">The current property under inspection</param>
+    /// <param name="semanticModel">The semantic model.</param>
     /// <param name="originalSource">The original type</param>
     /// <param name="partialSource">The partial type</param>
     /// <param name="name">The property name to use</param>
     /// <returns>True if has partial reference otherwise false</returns>
-    public static bool GetPartialReferenceInfo(this PropertyDeclarationSyntax property, out IdentifierNameSyntax? originalSource, out string? partialSource, out string? name)
+    public static bool GetPartialReferenceInfo(this PropertyDeclarationSyntax property, SemanticModel semanticModel, out IdentifierNameSyntax? originalSource, out string? partialSource, out string? name)
     {
         if (!property.AttributeLists.Any())
         {
@@ -312,9 +314,32 @@ public static class ExtensionHelpers
             return false;
         }
 
+        var attributeLists = property.AttributeLists;
+        AttributeSyntax? attribute = null;
+
+        foreach (var attributeList in attributeLists)
+        {
+            var attributes = attributeList.FilterAttributeByName(semanticModel, (n) => string.Equals(n, Names.PartialReference));
+            if (attributes.Any())
+            {
+                attribute = attributes.FirstOrDefault();
+                break;
+            }
+        }
+
+        if (attribute is null)
+        {
+            // No attributes
+            originalSource = null;
+            partialSource = null;
+            name = null;
+            return false;
+        }
+
         // Only supported from NET7.0 and onwards with language version C# 11
-        var generic = property.AttributeLists.SelectMany(ats => ats.Attributes.SelectMany(a => a.DescendantNodes())).OfType<GenericNameSyntax>().
-            FirstOrDefault(a => a.Identifier.ValueText.StartsWith("PartialReference"));
+        // GenericNameSyntax generic = property.AttributeLists.SelectMany(ats => ats.Attributes.SelectMany(a => a.DescendantNodes())).OfType<GenericNameSyntax>().
+        //     FirstOrDefault(a => a.Identifier.ValueText.StartsWith("PartialReference"));
+        var generic = attribute.DescendantNodes().OfType<GenericNameSyntax>().FirstOrDefault();
 
         if (generic is not null)
         {
@@ -329,34 +354,14 @@ public static class ExtensionHelpers
         else
         {
             // Non generic attributes "PartialReferenceAttribute"
-            var attrs = property.DescendantNodes().OfType<AttributeSyntax>().SelectMany(a => a.DescendantNodes().OfType<IdentifierNameSyntax>())
-                .Where(n => n.Identifier.ValueText.StartsWith("PartialReference"));
-            if (attrs is null || !attrs.Any())
-            {
-                // Does not exist
-                originalSource = null;
-                partialSource = null;
-                name = null;
-                return false;
-            }
-
-            var attr = attrs.FirstOrDefault().Parent;
-            if (attr is AttributeSyntax partialAttr)
-            {
-                // Extract type info
-                var attrArgs = partialAttr.DescendantNodes().OfType<TypeOfExpressionSyntax>();
-                originalSource = attrArgs.FirstOrDefault()?.Type as IdentifierNameSyntax;
-                var second = attrArgs.Skip(1).FirstOrDefault().Type as IdentifierNameSyntax;
-                partialSource = second?.Identifier.ValueText;
-                name = partialAttr.DescendantNodes().OfType<LiteralExpressionSyntax>().SingleOrDefault()?.Token.ValueText;
-                return originalSource is not null && !string.IsNullOrWhiteSpace(partialSource);
-            }
+            // Extract type info
+            var attrArgs = attribute.DescendantNodes().OfType<TypeOfExpressionSyntax>();
+            originalSource = attrArgs.FirstOrDefault()?.Type as IdentifierNameSyntax;
+            var second = attrArgs.Skip(1).FirstOrDefault().Type as IdentifierNameSyntax;
+            partialSource = second?.Identifier.ValueText;
+            name = attribute.DescendantNodes().OfType<LiteralExpressionSyntax>().SingleOrDefault()?.Token.ValueText;
+            return originalSource is not null && !string.IsNullOrWhiteSpace(partialSource);
         }
-
-        originalSource = null;
-        partialSource = null;
-        name = null;
-        return false;
     }
 
     /// <summary>
