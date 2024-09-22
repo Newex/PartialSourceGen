@@ -240,11 +240,9 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             }
             else
             {
-                // var hasRequiredAttribute = prop.AttributeLists.SelectMany(attrs => attrs.Attributes.Select(a => a.Name.GetText().ToString()))
-                //                                    .Any(s => s.StartsWith("Required", System.StringComparison.OrdinalIgnoreCase));
                 var hasRequiredAttribute = prop.PropertyHasAttributeWithTypeName(semanticModel, "System.ComponentModel.DataAnnotations.RequiredAttribute");
-                var hasRequired = prop.Modifiers.Any(m => m.IsKind(SyntaxKind.RequiredKeyword));
-                var keepType = hasRequired || hasRequiredAttribute || includeInitializer;
+                var hasRequiredModifier = prop.Modifiers.Any(m => m.IsKind(SyntaxKind.RequiredKeyword));
+                var keepType = hasRequiredModifier || hasRequiredAttribute || includeInitializer;
                 var forceNull = prop.AttributeLists.SelectMany(attrs => attrs.Attributes.Select(a => a.Name.GetText().ToString())).Any(s => s.StartsWith("ForceNull"));
 
                 if (keepType && !forceNull)
