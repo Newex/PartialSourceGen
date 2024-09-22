@@ -103,6 +103,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 continue;
             }
 
+            var propName = prop.Identifier.ValueText.Trim();
             var hasIncludeInitializer = prop.PropertyHasAttributeWithTypeName(semanticModel, Names.IncludeInitializer);
             var isExpression = prop.ExpressionBody is not null;
             TypeSyntax propertyType;
@@ -125,11 +126,16 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                     // with the new type.
                     // Since we are lazy, we do not want to do that now :\
                 }
-                if (hasNewType)
+
+                if (hasNewType && (hasRequiredAttribute || hasRequiredModifier))
                 {
-                    // TODO: placeholder to stop error
-                    // Must extract type from attribute.
-                    propertyType = prop.Type;
+                    propertyType = prop.ExtractTypeForPartialType(semanticModel, out var customName);
+                    propName = customName ?? propName;
+                }
+                else if (hasNewType)
+                {
+                    propertyType = SyntaxFactory.NullableType(prop.ExtractTypeForPartialType(semanticModel, out var customName));
+                    propName = customName ?? propName;
                 }
                 else if (keepType && !forceNull)
                 {
@@ -145,7 +151,6 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 }
             }
 
-            var propName = prop.Identifier.ValueText.Trim();
             IEnumerable<SyntaxToken> modifiers = prop.Modifiers;
             List<AttributeListSyntax> keepAttributes = [];
 

@@ -362,6 +362,46 @@ public static class ExtensionHelpers
     }
 
     /// <summary>
+    /// Extract the type for the PartialType from the property.
+    /// </summary>
+    /// <param name="property">The property.</param>
+    /// <param name="semanticModel">The semantic model.</param>
+    /// <param name="name">The optional name given.</param>
+    /// <returns>A type syntax from the property.</returns>
+    public static TypeSyntax ExtractTypeForPartialType(this PropertyDeclarationSyntax property, SemanticModel semanticModel, out string? name)
+    {
+        var attributeLists = property.AttributeLists;
+        AttributeSyntax? attribute = null;
+
+        foreach (var attributeList in attributeLists)
+        {
+            var attributes = attributeList.FilterAttributeByName(semanticModel, (n) => string.Equals(n, Names.PartialType));
+            if (attributes.Any())
+            {
+                attribute = attributes.FirstOrDefault();
+                break;
+            }
+        }
+
+        if (attribute is null)
+        {
+            name = null;
+            return property.Type;
+        }
+
+        var generic = attribute.DescendantNodes().OfType<GenericNameSyntax>().FirstOrDefault();
+        if (generic is not null)
+        {
+            name = generic.Parent?.DescendantNodes().OfType<LiteralExpressionSyntax>().Where(n => n.Parent.IsKind(SyntaxKind.AttributeArgument))
+                .Select(f => f.Token.ValueText)
+                .FirstOrDefault();
+            return generic.TypeArgumentList.Arguments.First();
+        }
+
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
     /// Remove other classes/structs/records except the one currently in focus
     /// </summary>
     /// <param name="root">The root source code</param>
