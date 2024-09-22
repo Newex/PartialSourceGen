@@ -2,8 +2,8 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using PartialSourceGen.Builders;
 using PartialSourceGen.Constants;
+using PartialSourceGen.Helpers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
