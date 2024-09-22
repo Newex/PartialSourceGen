@@ -141,22 +141,41 @@ public static class PartialEntityBuilder
     {
         foreach (var attributeList in propertyDeclaration.AttributeLists)
         {
-            foreach (var attribute in attributeList.Attributes)
-            {
-                // Can throw ArgumentException
-                // If the "Syntax node is not within the syntax tree".
-                // How to properly get the semantic model: https://github.com/dotnet/roslyn/issues/18730#issuecomment-294314178
-                var actualSemanticModel = semanticModel.Compilation.GetSemanticModel(attribute.SyntaxTree);
-                var info = actualSemanticModel.GetTypeInfo(attribute);
-                var type = info.Type;
-                if (type is not null)
-                {
-                    var name = type.ToString();
-                    return name == fullyQualifiedTypeName;
-                }
-            }
+            var attributeResults = FilterAttributeByName(attributeList, semanticModel, (n) => n == fullyQualifiedTypeName);
+            return attributeResults.Any();
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Retrieve the actual fully qualified type name for the attribute.
+    /// </summary>
+    /// <param name="attributes">The attribute list.</param>
+    /// <param name="semanticModel">The semantic model.</param>
+    /// <param name="predicate">The predicate filter, takes the fully qualified type name and returns a bool.</param>
+    /// <returns>A collection of names.</returns>
+    public static IEnumerable<AttributeSyntax> FilterAttributeByName(
+        this AttributeListSyntax attributes,
+        SemanticModel semanticModel,
+        Func<string, bool> predicate)
+    {
+        foreach (var attribute in attributes.Attributes)
+        {
+            // Can throw ArgumentException
+            // If the "Syntax node is not within the syntax tree".
+            // How to properly get the semantic model: https://github.com/dotnet/roslyn/issues/18730#issuecomment-294314178
+            var actualSemanticModel = semanticModel.Compilation.GetSemanticModel(attribute.SyntaxTree);
+            var info = actualSemanticModel.GetTypeInfo(attribute);
+            var type = info.Type;
+            if (type is not null)
+            {
+                var name = type.ToString();
+                if (predicate(name))
+                {
+                    yield return attribute;
+                }
+            }
+        }
     }
 }

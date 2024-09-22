@@ -129,11 +129,17 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
     """;
 
     private static readonly List<string> PartialAttributeNamesArray = [
-        "IncludeInitializer",
-        "PartialReference",
-        "ExcludePartial",
-        "ForceNull"
+        "PartialSourceGen.IncludeInitializerAttribute",
+        "PartialSourceGen.PartialReferenceAttribute",
+        "PartialSourceGen.ExcludePartialAttribute",
+        "PartialSourceGen.ForceNullAttribute"
     ];
+
+    private static bool IsNotLocalAttribute(string input) =>
+        !(string.Equals(input, PartialAttributeNamesArray[0])
+        || string.Equals(input, PartialAttributeNamesArray[1])
+        || string.Equals(input, PartialAttributeNamesArray[2])
+        || string.Equals(input, PartialAttributeNamesArray[3]));
 
     /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -270,13 +276,11 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 {
                     var newAttributes = new List<AttributeSyntax>();
 
-                    foreach (var attr in attrList.Attributes)
+                    var externalAttributes = attrList.FilterAttributeByName(semanticModel, IsNotLocalAttribute);
+                    foreach (var attr in externalAttributes)
                     {
-                        var txt = attr.Name.GetText().ToString();
-                        if (!PartialAttributeNamesArray.Any(txt.StartsWith))
-                        {
-                            newAttributes.Add(attr);
-                        }
+                        // Should be kept
+                        newAttributes.Add(attr);
                     }
 
                     // If there are any attributes left, add the new attribute list to keepAttributes
