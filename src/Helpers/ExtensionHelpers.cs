@@ -10,7 +10,7 @@ namespace PartialSourceGen.Helpers;
 /// <summary>
 /// Construct partial entity helper methods
 /// </summary>
-public static class PartialEntityExtensionHelpers
+public static class ExtensionHelpers
 {
     /// <summary>
     /// Add the provided summary OR keep the original summary for the entity
