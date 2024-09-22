@@ -397,8 +397,12 @@ public static class ExtensionHelpers
                 .FirstOrDefault();
             return generic.TypeArgumentList.Arguments.First();
         }
-
-        throw new NotImplementedException();
+        else
+        {
+            var attrArgs = attribute.DescendantNodes().OfType<TypeOfExpressionSyntax>();
+            name = attribute.DescendantNodes().OfType<LiteralExpressionSyntax>().SingleOrDefault()?.Token.ValueText;
+            return attrArgs.FirstOrDefault().Type;
+        }
     }
 
     /// <summary>
