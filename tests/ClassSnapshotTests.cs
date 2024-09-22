@@ -789,4 +789,35 @@ public class ClassSnapshotTests
         var settings = Settings();
         return Verify(runResult, settings).UseDirectory("Results/Classes");
     }
+
+    [Fact]
+    public Task Aliased_PartialSourceGen_attribute_should_not_be_included()
+    {
+        var source = """
+        using System.Text.Json.Serialization;
+        using PartialSourceGen;
+        using TryBypass = PartialSourceGen.IncludeInitializerAttribute;
+
+        namespace MySpace;
+
+        [Partial(IncludeExtraAttributes = true)]
+        public class Model
+        {
+            /// <summary>
+            /// input:
+            ///    public string Name { get; set; }
+            /// </summary>
+            [TryBypass]
+            [JsonPropertyName("myName")]
+            public string Name { get; set; } = "John Doe";
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver([source],
+            extraAssemblies: typeof(System.Text.Json.Serialization.JsonPropertyNameAttribute).Assembly)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Classes");
+    }
 }
