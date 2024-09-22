@@ -220,10 +220,8 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
 
         foreach (var prop in originalProps)
         {
-            var excludeAttribute = prop.AttributeLists
-                                                  .SelectMany(ats => ats.DescendantNodes().OfType<IdentifierNameSyntax>())
-                                                  .FirstOrDefault(n => n.Identifier.ValueText.StartsWith("ExcludePartial"));
-            if (excludeAttribute != null)
+            var hasExcludeAttribute = prop.PropertyHasAttributeWithTypeName(semanticModel, PartialAttributeNamesArray[2]);
+            if (hasExcludeAttribute)
             {
                 continue;
             }
