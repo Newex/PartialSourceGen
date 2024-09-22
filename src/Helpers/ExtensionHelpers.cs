@@ -142,7 +142,7 @@ public static class ExtensionHelpers
     {
         foreach (var attributeList in propertyDeclaration.AttributeLists)
         {
-            var attributeResults = attributeList.FilterAttributeByName(semanticModel, (n) => n == fullyQualifiedTypeName);
+            var attributeResults = attributeList.FilterAttributeByName(semanticModel, (n) => n.StartsWith(fullyQualifiedTypeName));
             return attributeResults.Any();
         }
 
