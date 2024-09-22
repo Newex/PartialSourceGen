@@ -882,4 +882,36 @@ public class ClassSnapshotTests
         var settings = Settings();
         return Verify(runResult, settings).UseDirectory("Results/Classes");
     }
+
+    [Fact]
+    public Task PartialType_attribute_with_generic_replacement()
+    {
+        var source = """
+        using System.Collections.Generic;
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        /// <summary>
+        /// An entity model
+        /// </summary>
+        [Partial]
+        public class Model
+        {
+            /// <summary>
+            /// input:
+            ///    [PartialType<List<string>>]
+            ///    public Post Name { get; set; }
+            /// </summary>
+            [PartialType<List<string>>]
+            public Post Name { get; set; }
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Classes");
+    }
 }
