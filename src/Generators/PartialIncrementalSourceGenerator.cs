@@ -226,10 +226,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 continue;
             }
 
-            var includeInitializerAttribute = prop.AttributeLists
-                                                  .SelectMany(ats => ats.DescendantNodes().OfType<IdentifierNameSyntax>())
-                                                  .FirstOrDefault(n => n.Identifier.ValueText.StartsWith("IncludeInitializer"));
-            var includeInitializer = includeInitializerAttribute is not null && prop.Initializer is not null;
+            var hasIncludeInitializer = prop.PropertyHasAttributeWithTypeName(semanticModel, PartialAttributeNamesArray[0]);
             var isExpression = prop.ExpressionBody is not null;
             TypeSyntax propertyType;
             if (prop.Type is NullableTypeSyntax nts)
@@ -240,7 +237,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             {
                 var hasRequiredAttribute = prop.PropertyHasAttributeWithTypeName(semanticModel, "System.ComponentModel.DataAnnotations.RequiredAttribute");
                 var hasRequiredModifier = prop.Modifiers.Any(m => m.IsKind(SyntaxKind.RequiredKeyword));
-                var keepType = hasRequiredModifier || hasRequiredAttribute || includeInitializer;
+                var keepType = hasRequiredModifier || hasRequiredAttribute || hasIncludeInitializer;
                 var forceNull = prop.AttributeLists.SelectMany(attrs => attrs.Attributes.Select(a => a.Name.GetText().ToString())).Any(s => s.StartsWith("ForceNull"));
 
                 if (keepType && !forceNull)
@@ -329,7 +326,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 }
             }
 
-            if (includeInitializer)
+            if (hasIncludeInitializer)
             {
                 candidateProp = candidateProp
                     .WithInitializer(prop.Initializer)
@@ -346,7 +343,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 }
             }
 
-            hasPropertyInitializer = hasPropertyInitializer || (prop.Initializer is not null && includeInitializer);
+            hasPropertyInitializer = hasPropertyInitializer || (prop.Initializer is not null && hasIncludeInitializer);
             optionalProps.Add(candidateProp);
         }
 
