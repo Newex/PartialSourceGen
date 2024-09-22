@@ -12,16 +12,17 @@ namespace PartialSourceGen.Tests.Configuration;
 
 public static class TestHelper
 {
-    public static GeneratorDriver GeneratorDriver(string source)
+    public static GeneratorDriver GeneratorDriver(string source, params Assembly[] extraAssemblies)
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(source);
         var reference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
         var componentModelReference = MetadataReference.CreateFromFile(typeof(System.ComponentModel.DataAnnotations.RequiredAttribute).Assembly.Location);
+        var extraReferences = extraAssemblies.Select(a => MetadataReference.CreateFromFile(a.Location));
 
         var compilation = CSharpCompilation.Create(
             assemblyName: "Tests",
             syntaxTrees: [syntaxTree],
-            references: [reference, componentModelReference]);
+            references: [reference, componentModelReference, .. extraReferences]);
 
         var generator = new PartialIncrementalSourceGenerator();
 
