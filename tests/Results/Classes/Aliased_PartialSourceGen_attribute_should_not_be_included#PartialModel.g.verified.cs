@@ -19,5 +19,5 @@ public partial class PartialModel
     ///    public string Name { get; set; }
     /// </summary>
     [JsonPropertyName("myName")]
-    public string? Name { get; set; }
+    public string Name { get; set; } = "John Doe";
 }
