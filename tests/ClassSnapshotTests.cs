@@ -673,7 +673,8 @@ public class ClassSnapshotTests
         }
         """;
 
-        var runResult = TestHelper.GeneratorDriver(source)
+        var runResult = TestHelper.GeneratorDriver([source],
+            extraAssemblies: typeof(System.Text.Json.Serialization.JsonPropertyNameAttribute).Assembly)
                                   .GetRunResult()
                                   .GetSecondResult();
         var settings = Settings();
@@ -703,6 +704,8 @@ public class ClassSnapshotTests
         """;
 
         var file2 = """
+        using System.Text.Json.Serialization;
+
         namespace MySpace;
 
         public class Entity : Base
@@ -725,7 +728,8 @@ public class ClassSnapshotTests
         }
         """;
 
-        var runResult = TestHelper.GeneratorDriver([file1, file2])
+        var runResult = TestHelper.GeneratorDriver([file1, file2],
+            extraAssemblies: typeof(System.Text.Json.Serialization.JsonPropertyNameAttribute).Assembly)
                                   .GetRunResult()
                                   .GetSecondResult();
         var settings = Settings();
@@ -778,7 +782,7 @@ public class ClassSnapshotTests
         }
         """;
 
-        var jsonTextAssembly = typeof(System.Text.Json.JsonProperty).Assembly;
+        var jsonTextAssembly = typeof(System.Text.Json.Serialization.JsonPropertyNameAttribute).Assembly;
         var runResult = TestHelper.GeneratorDriver([file1, file2], jsonTextAssembly)
                                   .GetRunResult()
                                   .GetSecondResult();
