@@ -485,3 +485,6 @@ $RECYCLE.BIN/
 
 # Vscode extension telemetry
 .mono/
+
+# Source generated files output directory
+sample/Generated/

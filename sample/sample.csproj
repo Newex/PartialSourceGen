@@ -7,10 +7,16 @@
     <AssemblyName>Sample</AssemblyName>
     <RootNamespace>Sample</RootNamespace>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <GeneratedFolder>Generated</GeneratedFolder>
+    <CompilerGeneratedFilesOutputPath>$(GeneratedFolder)\$(TargetFramework)</CompilerGeneratedFilesOutputPath>
   </PropertyGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\src\partial.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="$(GeneratedFolder)/**/*.cs" />
     </ItemGroup>
 
 </Project>
