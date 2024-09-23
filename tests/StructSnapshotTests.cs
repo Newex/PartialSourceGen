@@ -285,4 +285,30 @@ public class StructSnapshotTests
         var settings = Settings();
         return Verify(runResult, settings).UseDirectory("Results/Structs");
     }
+
+    [Fact]
+    public Task Remove_abstract_modifier()
+    {
+        var source = """
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        [Partial(RemoveAbstractModifier = true)]
+        public abstract struct Model
+        {
+            /// <summary>
+            /// input:
+            ///    public abstract string Name { get; set; }
+            /// </summary>
+            public abstract string Name { get; set; }
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Structs");
+    }
 }
