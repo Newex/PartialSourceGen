@@ -81,8 +81,8 @@ public static class Utilities
     /// <param name="input">The string input.</param>
     /// <returns>True if not a partial attribute otherwise false.</returns>
     public static bool IsNotLocalAttribute(string input) =>
-        !(string.Equals(input, Names.IncludeInitializer)
-        || string.Equals(input, Names.PartialReference)
-        || string.Equals(input, Names.ExcludePartial)
-        || string.Equals(input, Names.PartialType));
+        !(input.StartsWith(Names.IncludeInitializer)
+        || input.StartsWith(Names.PartialReference)
+        || input.StartsWith(Names.ExcludePartial)
+        || input.StartsWith(Names.PartialType));
 }

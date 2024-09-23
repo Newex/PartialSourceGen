@@ -319,7 +319,7 @@ public static class ExtensionHelpers
 
         foreach (var attributeList in attributeLists)
         {
-            var attributes = attributeList.FilterAttributeByName(semanticModel, (n) => string.Equals(n, Names.PartialReference));
+            var attributes = attributeList.FilterAttributeByName(semanticModel, (n) => n.StartsWith(Names.PartialReference));
             if (attributes.Any())
             {
                 attribute = attributes.FirstOrDefault();
@@ -375,7 +375,7 @@ public static class ExtensionHelpers
 
         foreach (var attributeList in attributeLists)
         {
-            var attributes = attributeList.FilterAttributeByName(semanticModel, (n) => string.Equals(n, Names.PartialType));
+            var attributes = attributeList.FilterAttributeByName(semanticModel, (n) => n.StartsWith(Names.PartialType));
             if (attributes.Any())
             {
                 attribute = attributes.FirstOrDefault();
