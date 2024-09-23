@@ -68,13 +68,15 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
         var givenName = context.GetPartialClassName();
         var node = context.TargetNode;
         var summary = context.GetSummaryText();
-        var includeRequired = context.GetIncludeRequiredProperties();
-        var includeExtra = context.GetIncludeExtraAttributesProperties();
+        var includeRequired = context.ConstructorPropertyIsTrue(Names.BooleanProperties.IncludeRequiredProperties);
+        var includeExtra = context.ConstructorPropertyIsTrue(Names.BooleanProperties.IncludeExtraAttributes);
+        var removeAbstract = context.ConstructorPropertyIsTrue(Names.BooleanProperties.RemoveAbstractModifier);
         return new(
             givenName ?? ("Partial" + name),
             summary,
             includeRequired,
             includeExtra,
+            removeAbstract,
             context.SemanticModel,
             root,
             node,
@@ -93,6 +95,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
              summaryTxt,
              includeRequired,
              includeExtra,
+             removeAbstract,
              semanticModel,
              root,
              node,
@@ -172,6 +175,10 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             {
                 // Remove the required keyword
                 modifiers = prop.Modifiers.Where(m => !m.IsKind(SyntaxKind.RequiredKeyword));
+            }
+            if (removeAbstract)
+            {
+                modifiers = prop.Modifiers.Where(m => !m.IsKind(SyntaxKind.AbstractKeyword));
             }
             if (includeExtra)
             {

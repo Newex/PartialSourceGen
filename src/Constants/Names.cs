@@ -42,4 +42,25 @@ public static class Names
     /// The partial type attribute name.
     /// </summary>
     public const string PartialType = "PartialSourceGen.PartialTypeAttribute";
+
+    /// <summary>
+    /// Boolean properties in the Partial attribute.
+    /// </summary>
+    public enum BooleanProperties
+    {
+        /// <summary>
+        /// Whether to include required properties.
+        /// </summary>
+        IncludeRequiredProperties,
+
+        /// <summary>
+        /// Whether to include extra attributes.
+        /// </summary>
+        IncludeExtraAttributes,
+
+        /// <summary>
+        /// Whether to remove the abstract keyword.
+        /// </summary>
+        RemoveAbstractModifier
+    }
 }

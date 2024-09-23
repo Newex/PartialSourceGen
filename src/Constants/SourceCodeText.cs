@@ -60,6 +60,11 @@ public static class SourceCodeText
             /// entity. Default false.
             /// </summary>
             public bool IncludeExtraAttributes { get; set; }
+
+            /// <summary>
+            /// Removes the abstract keyword in the partial entity.
+            /// </summary>
+            public bool RemoveAbstractModifier { get; set; }
         }
 
         /// <summary>

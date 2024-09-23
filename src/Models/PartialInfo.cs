@@ -15,6 +15,7 @@ internal readonly record struct PartialInfo
     /// <param name="summary">The custom summary for the partial entity.</param>
     /// <param name="includeRequired">True if required should be included.</param>
     /// <param name="includeAttributes">True if extra attributes should be copied.</param>
+    /// <param name="removeAbstract">True if abstract keyword should be removed.</param>
     /// <param name="model">The semantic model.</param>
     /// <param name="root">The syntax root node. The beginning of the source syntax node usually begins with using statements.</param>
     /// <param name="node">The syntax node. The class, struct or record under consideration.</param>
@@ -24,6 +25,7 @@ internal readonly record struct PartialInfo
         string? summary,
         bool includeRequired,
         bool includeAttributes,
+        bool removeAbstract,
         SemanticModel model,
         SyntaxNode root,
         SyntaxNode node,
@@ -33,6 +35,7 @@ internal readonly record struct PartialInfo
         Summary = summary;
         IncludeRequired = includeRequired;
         IncludeExtraAttributes = includeAttributes;
+        RemoveAbstractModifier = removeAbstract;
         SemanticModel = model;
         Root = root;
         Node = node;
@@ -61,6 +64,14 @@ internal readonly record struct PartialInfo
     /// </summary>
     public bool IncludeExtraAttributes { get; }
 
+    /// <summary>
+    /// Remove abstract keyword.
+    /// </summary>
+    public bool RemoveAbstractModifier { get; }
+
+    /// <summary>
+    /// The semantic model.
+    /// </summary>
     public SemanticModel SemanticModel { get; }
 
     /// <summary>
@@ -85,6 +96,7 @@ internal readonly record struct PartialInfo
     /// <param name="summary">The partial entity summary.</param>
     /// <param name="includeRequired">The required toggle.</param>
     /// <param name="includeExtraAttributes">The extra attributes toggle.</param>
+    /// <param name="removeAbstractModifier">The remove abstract keyword toggle.</param>
     /// <param name="semanticModel">The semantic model.</param>
     /// <param name="root">The root syntax.</param>
     /// <param name="node">The node syntax.</param>
@@ -94,6 +106,7 @@ internal readonly record struct PartialInfo
         out string? summary,
         out bool includeRequired,
         out bool includeExtraAttributes,
+        out bool removeAbstractModifier,
         out SemanticModel semanticModel,
         out SyntaxNode root,
         out SyntaxNode node,
@@ -103,6 +116,7 @@ internal readonly record struct PartialInfo
         summary = Summary;
         includeRequired = IncludeRequired;
         includeExtraAttributes = IncludeExtraAttributes;
+        removeAbstractModifier = RemoveAbstractModifier;
         semanticModel = SemanticModel;
         root = Root;
         node = Node;
