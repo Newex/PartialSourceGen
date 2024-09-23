@@ -120,6 +120,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             var hasIncludeInitializer = prop.PropertyHasAttributeWithTypeName(semanticModel, Names.IncludeInitializer);
             var isExpression = prop.ExpressionBody is not null;
             TypeSyntax propertyType;
+            IEnumerable<SyntaxToken> modifiers = prop.Modifiers;
             if (prop.Type is NullableTypeSyntax nts)
             {
                 propertyType = nts;
@@ -132,7 +133,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 if (includeRequired)
                 {
                     hasRequiredAttribute = prop.PropertyHasAttributeWithTypeName(semanticModel, "System.ComponentModel.DataAnnotations.RequiredAttribute");
-                    hasRequiredModifier = prop.Modifiers.Any(m => m.IsKind(SyntaxKind.RequiredKeyword));
+                    hasRequiredModifier = modifiers.Any(m => m.IsKind(SyntaxKind.RequiredKeyword));
                 }
 
                 keepType = hasIncludeInitializer || (includeRequired && (hasRequiredModifier || hasRequiredAttribute));
@@ -172,17 +173,16 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                 }
             }
 
-            IEnumerable<SyntaxToken> modifiers = prop.Modifiers;
             List<AttributeListSyntax> keepAttributes = [];
 
             if (!includeRequired)
             {
                 // Remove the required keyword
-                modifiers = prop.Modifiers.Where(m => !m.IsKind(SyntaxKind.RequiredKeyword));
+                modifiers = modifiers.Where(m => !m.IsKind(SyntaxKind.RequiredKeyword));
             }
             if (removeAbstract)
             {
-                modifiers = prop.Modifiers.Where(m => !m.IsKind(SyntaxKind.AbstractKeyword));
+                modifiers = modifiers.Where(m => !m.IsKind(SyntaxKind.AbstractKeyword));
             }
             if (includeExtra)
             {
