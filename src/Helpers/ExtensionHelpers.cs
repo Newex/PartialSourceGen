@@ -131,6 +131,23 @@ public static class ExtensionHelpers
     }
 
     /// <summary>
+    /// Remove the abstract keyword modifier if <paramref name="removeAbstract"/> is true.
+    /// </summary>
+    /// <param name="modifiers">The original modifiers.</param>
+    /// <param name="removeAbstract">True if abstract keyword modifier should be removed.</param>
+    /// <returns>A syntaxtoken list excluding abstract keyword modifier. Depending.</returns>
+    public static SyntaxTokenList ToggleAbstractModifier(this SyntaxTokenList modifiers, bool removeAbstract)
+    {
+        if (removeAbstract)
+        {
+            List<SyntaxToken> withoutAbstract = [.. modifiers.Where(m => !m.IsKind(SyntaxKind.AbstractKeyword))];
+            return SyntaxFactory.TokenList(withoutAbstract);
+        }
+
+        return modifiers;
+    }
+
+    /// <summary>
     /// Determine if the property contains an attribute with the given
     /// fully qualified type.
     /// </summary>
