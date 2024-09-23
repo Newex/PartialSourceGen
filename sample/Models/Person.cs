@@ -27,7 +27,7 @@ public readonly partial record struct Person<T>
     /// </summary>
     public string? LastName { get; init; }
 
-    [PartialReference<Post, PartialPost>]
+    [PartialType<string>]
     public Post Post { get; init; }
 }
 
