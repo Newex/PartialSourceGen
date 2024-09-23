@@ -43,6 +43,12 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             return null;
         }
 
+#if DEBUG && INTERCEPT
+        if (!System.Diagnostics.Debugger.IsAttached)
+        {
+            System.Diagnostics.Debugger.Launch();
+        }
+#endif
         var root = context.SemanticModel.SyntaxTree.GetRoot(token);
 
         // Code copied from:

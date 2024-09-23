@@ -19,6 +19,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageTags>source generator partial optional properties</PackageTags>
+    <!-- <DefineConstants>INTERCEPT</DefineConstants> -->
   </PropertyGroup>
 
     <ItemGroup>
