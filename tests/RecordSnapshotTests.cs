@@ -445,4 +445,30 @@ public class RecordSnapshotTests
         var settings = Settings();
         return Verify(runResult, settings).UseDirectory("Results/Records");
     }
+
+    [Fact]
+    public Task Should_remove_required_keyword_when_also_removing_abstract_modifier()
+    {
+        var source = """
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        [Partial(RemoveAbstractModifier = true)]
+        public abstract record Model
+        {
+            /// <summary>
+            /// input:
+            ///    public abstract string Name { get; set; }
+            /// </summary>
+            public abstract required string Name { get; set; }
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Records");
+    }
 }
