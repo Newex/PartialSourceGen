@@ -131,6 +131,23 @@ public static class ExtensionHelpers
     }
 
     /// <summary>
+    /// Remove the abstract keyword modifier if <paramref name="removeAbstract"/> is true.
+    /// </summary>
+    /// <param name="modifiers">The original modifiers.</param>
+    /// <param name="removeAbstract">True if abstract keyword modifier should be removed.</param>
+    /// <returns>A syntaxtoken list excluding abstract keyword modifier. Depending.</returns>
+    public static SyntaxTokenList ToggleAbstractModifier(this SyntaxTokenList modifiers, bool removeAbstract)
+    {
+        if (removeAbstract)
+        {
+            List<SyntaxToken> withoutAbstract = [.. modifiers.Where(m => !m.IsKind(SyntaxKind.AbstractKeyword))];
+            return SyntaxFactory.TokenList(withoutAbstract);
+        }
+
+        return modifiers;
+    }
+
+    /// <summary>
     /// Determine if the property contains an attribute with the given
     /// fully qualified type.
     /// </summary>
@@ -227,31 +244,12 @@ public static class ExtensionHelpers
     }
 
     /// <summary>
-    /// Extract if required properties should be included from the partial attribute. Default false.
-    /// </summary>
-    /// <param name="context">The context</param>
-    /// <returns>True if required properties should be included otherwise false</returns>
-    public static bool GetIncludeRequiredProperties(this GeneratorAttributeSyntaxContext context)
-    {
-        var args = context
-            .TargetNode
-            .DescendantNodes()
-            .OfType<AttributeArgumentSyntax>();
-
-        var include = args
-            .Where(n => n.Expression.IsKind(SyntaxKind.TrueLiteralExpression))
-            .Where(n => string.Equals("IncludeRequiredProperties", n.NameEquals?.Name.Identifier.ValueText, StringComparison.Ordinal))
-            .SingleOrDefault();
-
-        return include is not null;
-    }
-
-    /// <summary>
-    /// Extract if extra attributes should be included from partial attribute. Default false.
+    /// Determine if a property is set to true in the attribute constructor.
     /// </summary>
     /// <param name="context">The context.</param>
-    /// <returns>True if extra attribute annotations should be included otherwise false.</returns>
-    public static bool GetIncludeExtraAttributesProperties(this GeneratorAttributeSyntaxContext context)
+    /// <param name="property">The property.</param>
+    /// <returns>True if the property is set to true otherwise false.</returns>
+    public static bool ConstructorPropertyIsTrue(this GeneratorAttributeSyntaxContext context, Names.BooleanProperties property)
     {
         var args = context
             .TargetNode
@@ -260,7 +258,7 @@ public static class ExtensionHelpers
 
         var include = args
             .Where(n => n.Expression.IsKind(SyntaxKind.TrueLiteralExpression))
-            .Where(n => string.Equals("IncludeExtraAttributes", n.NameEquals?.Name.Identifier.ValueText, StringComparison.Ordinal))
+            .Where(n => string.Equals(property.ToString(), n.NameEquals?.Name.Identifier.ValueText, StringComparison.Ordinal))
             .SingleOrDefault();
 
         return include is not null;
