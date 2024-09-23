@@ -356,4 +356,93 @@ public class RecordSnapshotTests
         var settings = Settings();
         return Verify(runResult, settings).UseDirectory("Results/Records");
     }
+
+    [Fact]
+    public Task With_required_attribute()
+    {
+        var source = """
+        using PartialSourceGen;
+        using System.ComponentModel.DataAnnotations;
+
+        namespace MySpace;
+
+        [Partial(IncludeRequiredProperties = true)]
+        public record Model
+        {
+            /// <summary>
+            /// input:
+            ///    public string Name { get; set; }
+            ///
+            /// output:
+            ///    public string Name { get; set; }
+            /// </summary>
+            [Required]
+            public string Name { get; set; }
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Records");
+    }
+
+    [Fact]
+    public Task With_aliased_required_attribute()
+    {
+        var source = """
+        using PartialSourceGen;
+        using Important = System.ComponentModel.DataAnnotations.RequiredAttribute;
+
+        namespace MySpace;
+
+        [Partial(IncludeRequiredProperties = true)]
+        public record Model
+        {
+            /// <summary>
+            /// input:
+            ///    public string Name { get; set; }
+            ///
+            /// output:
+            ///    public string Name { get; set; }
+            /// </summary>
+            [Important]
+            public string Name { get; set; }
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Records");
+    }
+
+    [Fact]
+    public Task Should_exclude_property_when_marked_as_excluded()
+    {
+        var source = """
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        [Partial]
+        public record Model
+        {
+            /// <summary>
+            /// input:
+            ///    public string Name { get; set; }
+            /// </summary>
+            [ExcludePartial]
+            public string Name { get; set; }
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Records");
+    }
 }

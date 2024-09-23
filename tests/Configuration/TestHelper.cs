@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using PartialSourceGen.Generators;
@@ -10,15 +12,17 @@ namespace PartialSourceGen.Tests.Configuration;
 
 public static class TestHelper
 {
-    public static GeneratorDriver GeneratorDriver(string source)
+    public static GeneratorDriver GeneratorDriver(string source, params Assembly[] extraAssemblies)
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(source);
         var reference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
+        var componentModelReference = MetadataReference.CreateFromFile(typeof(System.ComponentModel.DataAnnotations.RequiredAttribute).Assembly.Location);
+        var extraReferences = extraAssemblies.Select(a => MetadataReference.CreateFromFile(a.Location));
 
         var compilation = CSharpCompilation.Create(
             assemblyName: "Tests",
             syntaxTrees: [syntaxTree],
-            references: [reference]);
+            references: [reference, componentModelReference, .. extraReferences]);
 
         var generator = new PartialIncrementalSourceGenerator();
 
@@ -27,7 +31,7 @@ public static class TestHelper
         return driver.RunGenerators(compilation);
     }
 
-    public static GeneratorDriver GeneratorDriver(IEnumerable<string> sources)
+    public static GeneratorDriver GeneratorDriver(IEnumerable<string> sources, params Assembly[] extraAssemblies)
     {
         List<SyntaxTree> syntaxTrees = [];
         foreach (var source in sources)
@@ -37,11 +41,13 @@ public static class TestHelper
         }
 
         var reference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
+        var componentModelReference = MetadataReference.CreateFromFile(typeof(System.ComponentModel.DataAnnotations.RequiredAttribute).Assembly.Location);
+        var extraReferences = extraAssemblies.Select(a => MetadataReference.CreateFromFile(a.Location));
 
         var compilation = CSharpCompilation.Create(
             assemblyName: "Tests",
             syntaxTrees: syntaxTrees,
-            references: [reference]);
+            references: [reference, componentModelReference, .. extraReferences]);
 
         var generator = new PartialIncrementalSourceGenerator();
 

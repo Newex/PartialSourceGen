@@ -673,7 +673,8 @@ public class ClassSnapshotTests
         }
         """;
 
-        var runResult = TestHelper.GeneratorDriver(source)
+        var runResult = TestHelper.GeneratorDriver([source],
+            extraAssemblies: typeof(System.Text.Json.Serialization.JsonPropertyNameAttribute).Assembly)
                                   .GetRunResult()
                                   .GetSecondResult();
         var settings = Settings();
@@ -703,6 +704,8 @@ public class ClassSnapshotTests
         """;
 
         var file2 = """
+        using System.Text.Json.Serialization;
+
         namespace MySpace;
 
         public class Entity : Base
@@ -725,7 +728,8 @@ public class ClassSnapshotTests
         }
         """;
 
-        var runResult = TestHelper.GeneratorDriver([file1, file2])
+        var runResult = TestHelper.GeneratorDriver([file1, file2],
+            extraAssemblies: typeof(System.Text.Json.Serialization.JsonPropertyNameAttribute).Assembly)
                                   .GetRunResult()
                                   .GetSecondResult();
         var settings = Settings();
@@ -755,6 +759,7 @@ public class ClassSnapshotTests
         """;
 
         var file2 = """
+        using System.Text.Json.Serialization;
         namespace MySpace;
 
         public partial class Model
@@ -777,7 +782,133 @@ public class ClassSnapshotTests
         }
         """;
 
-        var runResult = TestHelper.GeneratorDriver([file1, file2])
+        var jsonTextAssembly = typeof(System.Text.Json.Serialization.JsonPropertyNameAttribute).Assembly;
+        var runResult = TestHelper.GeneratorDriver([file1, file2], jsonTextAssembly)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Classes");
+    }
+
+    [Fact]
+    public Task Aliased_PartialSourceGen_attribute_should_not_be_included()
+    {
+        var source = """
+        using System.Text.Json.Serialization;
+        using PartialSourceGen;
+        using TryBypass = PartialSourceGen.IncludeInitializerAttribute;
+
+        namespace MySpace;
+
+        [Partial(IncludeExtraAttributes = true)]
+        public class Model
+        {
+            /// <summary>
+            /// input:
+            ///    public string Name { get; set; }
+            /// </summary>
+            [TryBypass]
+            [JsonPropertyName("myName")]
+            public string Name { get; set; } = "John Doe";
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver([source],
+            extraAssemblies: typeof(System.Text.Json.Serialization.JsonPropertyNameAttribute).Assembly)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Classes");
+    }
+
+    [Fact]
+    public Task PartialType_attribute_using_generic_attribute()
+    {
+        var source = """
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        /// <summary>
+        /// An entity model
+        /// </summary>
+        [Partial]
+        public class Model
+        {
+            /// <summary>
+            /// input:
+            ///    [PartialType<string>]
+            ///    public Post Name { get; set; }
+            /// </summary>
+            [PartialType<string>]
+            public Post Name { get; set; }
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Classes");
+    }
+
+    [Fact]
+    public Task PartialType_attribute_using_non_generic_attribute()
+    {
+        var source = """
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        /// <summary>
+        /// An entity model
+        /// </summary>
+        [Partial]
+        public class Model
+        {
+            /// <summary>
+            /// input:
+            ///    [PartialType(typeof(string))]
+            ///    public Post Name { get; set; }
+            /// </summary>
+            [PartialType(typeof(string))]
+            public Post Name { get; set; }
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Classes");
+    }
+
+    [Fact]
+    public Task PartialType_attribute_with_generic_replacement()
+    {
+        var source = """
+        using System.Collections.Generic;
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        /// <summary>
+        /// An entity model
+        /// </summary>
+        [Partial]
+        public class Model
+        {
+            /// <summary>
+            /// input:
+            ///    [PartialType<List<string>>]
+            ///    public Post Name { get; set; }
+            /// </summary>
+            [PartialType<List<string>>]
+            public Post Name { get; set; }
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
                                   .GetRunResult()
                                   .GetSecondResult();
         var settings = Settings();

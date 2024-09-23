@@ -217,6 +217,7 @@ partial record PartialPerson
 | `PartialReference<TOriginal, TPartial>` | Replaces a type for a partial type |
 | `ExcludePartial` | Excludes a property |
 | `ForceNull` | Force a required property to be nullable |
+| `PartialType<TReplacement>` | Replaces a property type with the specified type |
 
 
 ### IncludeInitializer
@@ -237,7 +238,7 @@ public record Person
 Would produce `PartialPerson.g.cs`:
 
 ```csharp
-public record PartialPerson
+public partial record PartialPerson
 {
     public string Name { get; set; } = string.Empty;
 }
@@ -272,7 +273,7 @@ using PartialSourceGen;
 
 namespace MySpace;
 
-public record PartialPerson
+public partial record PartialPerson
 {
     public List<PartialPost>? CustomOptionalNameForPosts { get; set; }
 }
@@ -313,7 +314,7 @@ Produces:
 
 ```csharp
 // Output: PartialPerson.g.cs
-public record PartialPerson
+public partial record PartialPerson
 {
 }
 ```
@@ -341,6 +342,32 @@ Will produce:
 public partial record PartialPerson
 {
     public required string? Name { get; set; } = string.Empty;
+}
+```
+
+### PartialType
+
+This will replace the property type with the specified type.
+
+If you are on newer C# you can use the generic attribute syntax:
+
+```csharp
+// Input: Person.cs
+[Partial]
+public record Person
+{
+    [PartialType<object>(name: "NewName")]
+    public string Name { get; set; } = string.Empty;
+}
+```
+
+Will output:
+
+```csharp
+// Output: PartialPerson.g.cs
+public partial record PartialPerson
+{
+    public object? NewName { get; set; }
 }
 ```
 
