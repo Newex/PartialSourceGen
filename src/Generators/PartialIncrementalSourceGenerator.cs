@@ -119,9 +119,16 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             }
             else
             {
-                var hasRequiredAttribute = prop.PropertyHasAttributeWithTypeName(semanticModel, "System.ComponentModel.DataAnnotations.RequiredAttribute");
-                var hasRequiredModifier = prop.Modifiers.Any(m => m.IsKind(SyntaxKind.RequiredKeyword));
-                var keepType = hasRequiredModifier || hasRequiredAttribute || hasIncludeInitializer;
+                var keepType = false;
+                var hasRequiredAttribute = false;
+                var hasRequiredModifier = false;
+                if (includeRequired)
+                {
+                    hasRequiredAttribute = prop.PropertyHasAttributeWithTypeName(semanticModel, "System.ComponentModel.DataAnnotations.RequiredAttribute");
+                    hasRequiredModifier = prop.Modifiers.Any(m => m.IsKind(SyntaxKind.RequiredKeyword));
+                }
+
+                keepType = hasIncludeInitializer || (includeRequired && (hasRequiredModifier || hasRequiredAttribute));
                 var forceNull = prop.PropertyHasAttributeWithTypeName(semanticModel, Names.ForceNull);
                 var hasNewType = prop.PropertyHasAttributeWithTypeName(semanticModel, Names.PartialType);
 
@@ -143,12 +150,13 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
                     propertyType = SyntaxFactory.NullableType(prop.ExtractTypeForPartialType(semanticModel, out var customName));
                     propName = customName ?? propName;
                 }
-                else if (keepType && !forceNull)
+                else if (!forceNull && keepType)
                 {
                     // Retain original type when
-                    // 1. has Required attribute
-                    // 2. has required keyword
-                    // 3. has IncludeInitializer with initializer
+                    // 1. User has specified that IncludeRequired is true
+                    // 2. has IncludeInitializer with initializer
+                    // 3. has Required attribute
+                    // 4. has required keyword
                     propertyType = prop.Type;
                 }
                 else

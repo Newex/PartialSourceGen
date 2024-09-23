@@ -1,5 +1,5 @@
 ﻿using PartialSourceGen;
-using Important = System.ComponentModel.DataAnnotations.RequiredAttribute;
+// using Important = System.ComponentModel.DataAnnotations.RequiredAttribute;
 
 namespace Sample.Models;
 
@@ -7,15 +7,15 @@ namespace Sample.Models;
 /// A person
 /// </summary>
 /// <typeparam name="T">The type</typeparam>
-[Partial(IncludeRequiredProperties = true, Summary = "A partial person")]
+[Partial(Summary = "A partial person")]
 public readonly partial record struct Person<T>
 {
     public Person()
     {
     }
 
-    [Important]
-    public int ID { get; init; } = 123;
+    // [Important]
+    public required int ID { get; init; } = 123;
 
     /// <summary>
     /// The first name
