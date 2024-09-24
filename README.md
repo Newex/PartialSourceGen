@@ -173,6 +173,36 @@ public partial record PartialModel
 }
 ```
 
+### Set inheritance
+To define a particular type that the model should inherit from, you can set the `DerivedFrom` property.
+
+Usage:
+
+```csharp
+// Input
+namespace MyNameSpace;
+
+public record BaseModel { }
+
+[Partial(DerivedFrom = typeof(BaseModel))]
+public record Model
+{
+    public int ID { get; init; }
+}
+```
+
+Will produce:
+
+```csharp
+// Output
+public partial record PartialModel : BaseModel
+{
+    public int? ID { get; init; }
+}
+```
+
+Normally any partial model will specify any inheritance.
+
 ### Add custom methods to the partial entity
 The generated class/struct/record is a partial entity, thus it is possible to just add a method in a separate file.  
 The normal constraints and rules apply for partial classes: https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/partial-classes-and-methods
