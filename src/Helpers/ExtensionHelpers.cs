@@ -264,6 +264,34 @@ public static class ExtensionHelpers
         return include is not null;
     }
 
+    /// <summary>
+    /// Extract the derived type syntax
+    /// </summary>
+    /// <param name="node">The syntax node.</param>
+    /// <returns>A type syntax or null for the type to derive from.</returns>
+    public static TypeSyntax? GetDerivedFrom(this SyntaxNode node)
+    {
+        var args = node.DescendantNodes()
+            .OfType<AttributeArgumentSyntax>();
+
+        var expression = args
+            .Where(n => n.Expression.IsKind(SyntaxKind.TypeOfExpression))
+            .FirstOrDefault();
+
+        if (expression is null)
+        {
+            return null;
+        }
+
+        var text = expression.NameEquals?.DescendantNodes().OfType<IdentifierNameSyntax>().FirstOrDefault()?.Identifier.Text;
+        if (text is not null && text.StartsWith("DerivedFrom"))
+        {
+            return expression.Expression.DescendantNodes().OfType<TypeSyntax>().FirstOrDefault();
+        }
+
+        return null;
+    }
+
     internal static bool PropertyMemberReferences(this PropertyDeclarationSyntax propertyDeclaration, SyntaxNode node, out Dictionary<string, MemberDeclarationSyntax>? result)
     {
         var members = propertyDeclaration.DescendantNodes().OfType<IdentifierNameSyntax>();
@@ -429,5 +457,25 @@ public static class ExtensionHelpers
         }
 
         return root;
+    }
+
+    /// <summary>
+    /// Add inherited type to output.
+    /// </summary>
+    /// <typeparam name="T">The type declaration syntax type.</typeparam>
+    /// <param name="input">The input type.</param>
+    /// <param name="derivedTypeSyntax">The derived type.</param>
+    /// <returns>A type with derived from the given type or none</returns>
+    public static T WithDerived<T>(this T input, TypeSyntax? derivedTypeSyntax)
+        where T : TypeDeclarationSyntax
+    {
+        if (derivedTypeSyntax is not null)
+        {
+            var derived = SyntaxFactory.SimpleBaseType(derivedTypeSyntax);
+            var baseList = SyntaxFactory.SeparatedList<BaseTypeSyntax>().Add(derived);
+            return (T)input.WithBaseList(SyntaxFactory.BaseList(baseList));
+        }
+
+        return input;
     }
 }

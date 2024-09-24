@@ -65,6 +65,11 @@ public static class SourceCodeText
             /// Removes the abstract keyword in the partial entity.
             /// </summary>
             public bool RemoveAbstractModifier { get; set; }
+
+            /// <summary>
+            /// Set the derived type for the partial entity.
+            /// </summary>
+            public Type? DeriveFrom { get; set; }
         }
 
         /// <summary>
