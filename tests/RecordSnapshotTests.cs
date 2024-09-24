@@ -471,4 +471,35 @@ public class RecordSnapshotTests
         var settings = Settings();
         return Verify(runResult, settings).UseDirectory("Results/Records");
     }
+
+    [Fact]
+    public Task Should_set_derived_type()
+    {
+        var source = """
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        public record BaseModel
+        {
+            public string Hello => "World!";
+        }
+
+        [Partial(DerivedFrom = typeof(BaseModel))]
+        public record Model
+        {
+            /// <summary>
+            /// input:
+            ///    public required string Name { get; set; }
+            /// </summary>
+            public required string Name { get; set; }
+        }
+        """;
+
+        var runResult = TestHelper.GeneratorDriver(source)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Records");
+    }
 }
