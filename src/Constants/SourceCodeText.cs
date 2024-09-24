@@ -132,7 +132,6 @@ public static class SourceCodeText
         /// <summary>
         /// Replace a type with the given type.
         /// </summary>
-        /// <typeparam name="T">The type to use instead.</typeparam>
         [AttributeUsage(AttributeTargets.Property)]
         internal sealed class PartialTypeAttribute : Attribute
         {
