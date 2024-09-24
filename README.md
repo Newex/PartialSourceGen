@@ -74,7 +74,8 @@ Here is a short overview of all the settings in `PartialAttribute`:
 | `Summary` | `string` | Specify a custom summary. |
 | `PartialClassName` | `string` | Specify a custom partial class name. |
 | `IncludeRequired` | `bool` | Keep properties as required and non-nullable if they are required. |
-| `IncludeExtraAttributes` | `bool` | Copy all attributes (except PartialSourceGen attributes) to partial entity |
+| `IncludeExtraAttributes` | `bool` | Copy all attributes (except PartialSourceGen attributes) to partial entity. |
+| `RemoveAbstractModifier` | `bool` | Remove the abstract keyword from the entity. |
 | `DerivedFrom` | `Type` | Type to inherit from. |
 
 
@@ -179,6 +180,30 @@ public partial record PartialModel
 {
     [JsonPropertyName("id")]
     public int? ID { get; init; }
+}
+```
+
+### Remove abstract keyword
+To remove the `abstract` keyword for the partial entity, if the source is an abstract entity, you can specify `RemoveAbstractModifier`, like so:
+
+```csharp
+// Input
+[Partial(RemoveAbstractModifier = true)]
+public abstract record Person
+{
+    public int ID { get; set; }
+    public abstract string Name { get; set; }
+}
+```
+
+Will produce:
+
+```csharp
+// PartialPerson.g.cs
+public record PartialPerson
+{
+    public int? ID { get; set; }
+    public string? Name { get; set; }
 }
 ```
 
