@@ -67,7 +67,16 @@ app.MapPost("/update/person", async (PartialPerson updates) =>
 ```
 
 # Conventions and settings
-The generated model can be fine tuned by the `PartialAttribute` parameters.
+Here is a short overview of all the settings in `PartialAttribute`:
+
+|  Property parameter | Input type | Short explanation |
+|-----------|---------|----------|
+| `Summary` | `string` | Specify a custom summary. |
+| `PartialClassName` | `string` | Specify a custom partial class name. |
+| `IncludeRequired` | `bool` | Keep properties as required and non-nullable if they are required. |
+| `IncludeExtraAttributes` | `bool` | Copy all attributes (except PartialSourceGen attributes) to partial entity |
+| `DerivedFrom` | `Type` | Type to inherit from. |
+
 
 ### Custom summary
 The partial entity can have a custom summary by specifying the `Summary` property like so:
@@ -437,7 +446,3 @@ To add the attributes you can either recreate the attributes yourself, or use th
 * The typescript `Partial` utility type: https://www.typescriptlang.org/docs/handbook/utility-types.html#partialtype
 * Learn about incremental source generators: https://andrewlock.net/creating-a-source-generator-part-1-creating-an-incremental-source-generator/
 * The cookbook: https://github.com/dotnet/roslyn/blob/main/docs/features/incremental-generators.cookbook.md
-
-# Future improvements / ideas
-- [ ] What about conflicting classes or files? Not currently handled
-- [ ] Custom namespace for partial objects?
