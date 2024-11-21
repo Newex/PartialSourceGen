@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using PartialSourceGen.Tests.Configuration;
 using VerifyTests;
@@ -674,7 +674,7 @@ public class ClassSnapshotTests
         """;
 
         var runResult = TestHelper.GeneratorDriver([source],
-            extraAssemblies: typeof(System.Text.Json.Serialization.JsonPropertyNameAttribute).Assembly)
+            references: TestHelper.ToReferenceFromAssembly<System.Text.Json.Serialization.JsonPropertyNameAttribute>())
                                   .GetRunResult()
                                   .GetSecondResult();
         var settings = Settings();
@@ -729,7 +729,7 @@ public class ClassSnapshotTests
         """;
 
         var runResult = TestHelper.GeneratorDriver([file1, file2],
-            extraAssemblies: typeof(System.Text.Json.Serialization.JsonPropertyNameAttribute).Assembly)
+            references: TestHelper.ToReferenceFromAssembly<System.Text.Json.Serialization.JsonPropertyNameAttribute>())
                                   .GetRunResult()
                                   .GetSecondResult();
         var settings = Settings();
@@ -782,7 +782,7 @@ public class ClassSnapshotTests
         }
         """;
 
-        var jsonTextAssembly = typeof(System.Text.Json.Serialization.JsonPropertyNameAttribute).Assembly;
+        var jsonTextAssembly = TestHelper.ToReferenceFromAssembly<System.Text.Json.Serialization.JsonPropertyNameAttribute>();
         var runResult = TestHelper.GeneratorDriver([file1, file2], jsonTextAssembly)
                                   .GetRunResult()
                                   .GetSecondResult();
@@ -814,7 +814,7 @@ public class ClassSnapshotTests
         """;
 
         var runResult = TestHelper.GeneratorDriver([source],
-            extraAssemblies: typeof(System.Text.Json.Serialization.JsonPropertyNameAttribute).Assembly)
+            references: TestHelper.ToReferenceFromAssembly<System.Text.Json.Serialization.JsonPropertyNameAttribute>())
                                   .GetRunResult()
                                   .GetSecondResult();
         var settings = Settings();
