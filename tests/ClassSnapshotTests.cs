@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using PartialSourceGen.Tests.Configuration;
 using VerifyTests;
@@ -912,6 +912,54 @@ public class ClassSnapshotTests
                                   .GetRunResult()
                                   .GetSecondResult();
         var settings = Settings();
+        return Verify(runResult, settings).UseDirectory("Results/Classes");
+    }
+
+    [Fact]
+    public Task Inheritance_across_assembly_should_work()
+    {
+        // Arrange, base assembly
+        var baseSource = """
+        using System.ComponentModel.DataAnnotations;
+
+        namespace MyBaseLib
+        {
+            public class SImpleBase
+            {
+                [Timestamp]
+                public byte[] RowVersion { get; set; } = new byte[8];
+
+                public bool NonTimestampProp { get; set; } = true;
+            }
+        }
+        """;
+
+        var timestampAssembly = TestHelper.ToReferenceFromAssembly<System.ComponentModel.DataAnnotations.TimestampAttribute>();
+        var baseAssembly = TestHelper.InMemoryAssemblyCreation(baseSource, "MyBaseLib", timestampAssembly);
+        var baseReference = TestHelper.ToReferenceFromByteArray(baseAssembly);
+
+        // Arrange, actual assembly
+        var source = """
+        using MyBaseLib;
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        [Partial]
+        public class Prova : SImpleBase
+        {
+            public string Surname { get; set; }
+            public string Name { get; set; }
+        }
+        """;
+
+        // Act
+        var runResult = TestHelper.GeneratorDriver([source], baseReference)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        var settings = Settings();
+
+        // Assert
         return Verify(runResult, settings).UseDirectory("Results/Classes");
     }
 }

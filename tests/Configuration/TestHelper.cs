@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -55,10 +55,44 @@ public static class TestHelper
         return driver.RunGenerators(compilation);
     }
 
+    public static byte[] InMemoryAssemblyCreation(string sourceCode, string assemblyName, params MetadataReference[] references)
+    {
+        var syntaxTree = CSharpSyntaxTree.ParseText(sourceCode);
+        var compilation = CSharpCompilation.Create(
+            assemblyName,
+            syntaxTrees: [syntaxTree],
+            references: [
+                MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(Attribute).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(System.Runtime.InteropServices.GuidAttribute).Assembly.Location),
+                .. references
+            ],
+            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        var baseReferences = AppDomain.CurrentDomain.GetAssemblies()
+            .Where(_ => !_.IsDynamic && !string.IsNullOrWhiteSpace(_.Location))
+            .Select(_ => MetadataReference.CreateFromFile(_.Location))
+            .ToList();
+
+        compilation = compilation.AddReferences(baseReferences);
+
+        using var ms = new MemoryStream();
+        var result = compilation.Emit(ms);
+        if (!result.Success)
+            throw new InvalidOperationException("Base class assembly compilation failed.");
+
+        return ms.ToArray();
+    }
+
     public static MetadataReference ToReferenceFromAssembly<T>()
     {
         var assembly = typeof(T).Assembly;
         return MetadataReference.CreateFromFile(assembly.Location);
+    }
+
+    public static MetadataReference ToReferenceFromByteArray(byte[] assembly)
+    {
+        return MetadataReference.CreateFromImage(assembly);
     }
 
     public static Target GetSecondResult(this GeneratorDriverRunResult result)
