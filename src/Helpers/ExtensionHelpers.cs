@@ -167,6 +167,48 @@ public static class ExtensionHelpers
     }
 
     /// <summary>
+    /// Determine if the property contains an attribute with the given
+    /// fully qualified type.
+    /// </summary>
+    /// <param name="property">The property symbol.</param>
+    /// <param name="fullyQualifiedTypeName">The fully qualified type name.</param>
+    /// <returns>True if an attribute exists with that type name otherwise false.</returns>
+    public static bool PropertyHasAttributeWithTypeName(this IPropertySymbol property, string fullyQualifiedTypeName)
+    {
+        var attributes = property.GetAttributes();
+        foreach (var attribute in attributes)
+        {
+            var name = attribute.AttributeClass?.Name;
+            if (name is not null && name.StartsWith(fullyQualifiedTypeName))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determine if the property is an expression property.
+    /// </summary>
+    /// <param name="prop">The property symbol.</param>
+    /// <returns>True if the property is an expression otherwise false.</returns>
+    public static bool HasExpressionBody(this IPropertySymbol prop)
+    {
+        var getter = prop.GetMethod;
+        if (getter is not null)
+        {
+            var syntax = getter.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
+            if (syntax is not null && syntax is ArrowExpressionClauseSyntax arrow)
+            {
+                return arrow.Expression is not null;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Retrieve the actual fully qualified type name for the attribute.
     /// </summary>
     /// <param name="attributes">The attribute list.</param>

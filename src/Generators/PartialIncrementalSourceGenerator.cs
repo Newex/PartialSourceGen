@@ -51,18 +51,18 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
 #endif
         var root = context.SemanticModel.SyntaxTree.GetRoot(token);
 
-        // Code copied from:
-        // https://github.com/Newex/PartialSourceGen/issues/14#issue-2307071834
-        List<PropertyDeclarationSyntax> props = [];
+        List<IPropertySymbol> propertySymbols = [];
         for (var currentType = nameSymbol; currentType != null; currentType = currentType.BaseType)
         {
-            var newProps = currentType.GetMembers()
-                .OfType<IPropertySymbol>()
-                .SelectMany(s => s.DeclaringSyntaxReferences)
-                .Select(s => s.GetSyntax())
-                .OfType<PropertyDeclarationSyntax>();
-            props.AddRange(newProps);
+            var propSymbols = currentType.GetMembers().OfType<IPropertySymbol>();
+            propertySymbols.AddRange(propSymbols);
         }
+
+        var props = propertySymbols
+            .SelectMany(p => p.DeclaringSyntaxReferences)
+            .Select(r => r.GetSyntax(token))
+            .OfType<PropertyDeclarationSyntax>()
+            .ToList();
 
         var name = nameSymbol.Name;
         var givenName = context.GetPartialClassName();
@@ -80,7 +80,8 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             context.SemanticModel,
             root,
             node,
-            [.. props]
+            [.. props],
+            propertySymbols
         );
     }
 
@@ -99,22 +100,25 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
              semanticModel,
              root,
              node,
-             originalProps) = source.GetValueOrDefault();
+             originalProps,
+             propertySymbols) = source.GetValueOrDefault();
         List<PropertyDeclarationSyntax> optionalProps = [];
         Dictionary<string, MemberDeclarationSyntax> propMembers = [];
         var hasPropertyInitializer = false;
 
-        foreach (var prop in originalProps)
+        foreach (var propSymbol in propertySymbols)
         {
-            var hasExcludeAttribute = prop.PropertyHasAttributeWithTypeName(semanticModel, Names.ExcludePartial);
+            var hasExcludeAttribute = propSymbol.PropertyHasAttributeWithTypeName(Names.ExcludePartial);
             if (hasExcludeAttribute)
             {
                 continue;
             }
 
-            var propName = prop.Identifier.ValueText.Trim();
-            var hasIncludeInitializer = prop.PropertyHasAttributeWithTypeName(semanticModel, Names.IncludeInitializer);
-            var isExpression = prop.ExpressionBody is not null;
+            var propName = propSymbol.Name.Trim();
+            var hasIncludeInitializer = propSymbol.PropertyHasAttributeWithTypeName(Names.IncludeInitializer);
+            var isExpression = propSymbol.HasExpressionBody();
+            var propDeclaration = SyntaxFactory.ParseTypeName(propSymbol.Type.ToString());
+            var prop = SyntaxFactory.PropertyDeclaration(propDeclaration, propSymbol.Name);
             TypeSyntax propertyType;
             IEnumerable<SyntaxToken> modifiers = prop.Modifiers;
             if (prop.Type is NullableTypeSyntax nts)
@@ -123,18 +127,17 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             }
             else
             {
-                var keepType = false;
-                var hasRequiredAttribute = false;
+                var hasRequiredAttribute = propSymbol.PropertyHasAttributeWithTypeName("System.ComponentModel.DataAnnotations.RequiredAttribute");
+                var keepType = hasIncludeInitializer || (includeRequired && (hasRequiredAttribute || propSymbol.IsRequired));
+                var forceNull = propSymbol.PropertyHasAttributeWithTypeName(Names.ForceNull);
+                var hasNewType = propSymbol.PropertyHasAttributeWithTypeName(Names.PartialType);
+
                 var hasRequiredModifier = false;
                 if (includeRequired)
                 {
                     hasRequiredAttribute = prop.PropertyHasAttributeWithTypeName(semanticModel, "System.ComponentModel.DataAnnotations.RequiredAttribute");
                     hasRequiredModifier = modifiers.Any(m => m.IsKind(SyntaxKind.RequiredKeyword));
                 }
-
-                keepType = hasIncludeInitializer || (includeRequired && (hasRequiredModifier || hasRequiredAttribute));
-                var forceNull = prop.PropertyHasAttributeWithTypeName(semanticModel, Names.ForceNull);
-                var hasNewType = prop.PropertyHasAttributeWithTypeName(semanticModel, Names.PartialType);
 
                 if (hasNewType && hasIncludeInitializer)
                 {

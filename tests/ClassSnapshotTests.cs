@@ -928,8 +928,6 @@ public class ClassSnapshotTests
             {
                 [Timestamp]
                 public byte[] RowVersion { get; set; } = new byte[8];
-
-                public bool NonTimestampProp { get; set; } = true;
             }
         }
         """;
