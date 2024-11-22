@@ -520,4 +520,62 @@ public static class ExtensionHelpers
 
         return input;
     }
+
+    public static SyntaxTokenList CreateModifiers(this IPropertySymbol prop)
+    {
+        var accessibility = prop.DeclaredAccessibility;
+        var isStatic = prop.IsStatic;
+        var isReadOnly = prop.IsReadOnly;
+        var isAbstract = prop.IsAbstract;
+        var isSealed = prop.IsSealed;
+        var isOverride = prop.IsOverride;
+        var isVirtual = prop.IsVirtual;
+
+        var modifiers = new SyntaxTokenList();
+        SyntaxToken[] accessModifier = accessibility switch
+        {
+            Accessibility.Private => [SyntaxFactory.Token(SyntaxKind.PrivateKeyword)],
+            Accessibility.ProtectedAndInternal => [
+                SyntaxFactory.Token(SyntaxKind.ProtectedKeyword),
+                SyntaxFactory.Token(SyntaxKind.InternalKeyword)
+            ],
+            Accessibility.Protected => [SyntaxFactory.Token(SyntaxKind.ProtectedKeyword)],
+            Accessibility.Internal => [SyntaxFactory.Token(SyntaxKind.InternalKeyword)],
+            Accessibility.Public => [SyntaxFactory.Token(SyntaxKind.PublicKeyword)],
+            _ => throw new NotSupportedException("Accessibility not supported."),
+        };
+        modifiers = modifiers.AddRange(accessModifier);
+
+        if (isStatic)
+        {
+            modifiers = modifiers.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+        }
+
+        if (isReadOnly)
+        {
+            modifiers = modifiers.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
+        }
+
+        if (isAbstract)
+        {
+            modifiers = modifiers.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
+        }
+
+        if (isSealed)
+        {
+            modifiers = modifiers.Add(SyntaxFactory.Token(SyntaxKind.SealedKeyword));
+        }
+
+        if (isOverride)
+        {
+            modifiers = modifiers.Add(SyntaxFactory.Token(SyntaxKind.OverrideKeyword));
+        }
+
+        if (isVirtual)
+        {
+            modifiers = modifiers.Add(SyntaxFactory.Token(SyntaxKind.VirtualKeyword));
+        }
+
+        return modifiers;
+    }
 }

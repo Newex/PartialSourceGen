@@ -118,7 +118,8 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             var hasIncludeInitializer = propSymbol.PropertyHasAttributeWithTypeName(Names.IncludeInitializer);
             var isExpression = propSymbol.HasExpressionBody();
             var propDeclaration = SyntaxFactory.ParseTypeName(propSymbol.Type.ToString());
-            var prop = SyntaxFactory.PropertyDeclaration(propDeclaration, propSymbol.Name);
+            var prop = SyntaxFactory.PropertyDeclaration(propDeclaration, propSymbol.Name)
+                    .WithModifiers(propSymbol.CreateModifiers());
             TypeSyntax propertyType;
             IEnumerable<SyntaxToken> modifiers = prop.Modifiers;
             if (prop.Type is NullableTypeSyntax nts)
