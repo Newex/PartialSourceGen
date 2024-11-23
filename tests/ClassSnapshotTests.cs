@@ -937,7 +937,64 @@ public class ClassSnapshotTests
 
         var timestampAssembly = TestHelper.ToReferenceFromAssembly<System.ComponentModel.DataAnnotations.TimestampAttribute>();
         var jsonAssembly = TestHelper.ToReferenceFromAssembly<System.Text.Json.Serialization.JsonPropertyNameAttribute>();
-        var baseAssembly = TestHelper.InMemoryAssemblyCreation(baseSource, "MyBaseLib", timestampAssembly, jsonAssembly);
+        var baseAssembly = TestHelper.InMemoryAssemblyCreation([baseSource], "MyBaseLib", timestampAssembly, jsonAssembly);
+        var baseReference = TestHelper.ToReferenceFromByteArray(baseAssembly);
+
+        // Arrange, actual assembly
+        var source = """
+        using MyBaseLib;
+        using PartialSourceGen;
+
+        namespace MySpace;
+
+        [Partial(IncludeExtraAttributes = true)]
+        public class Prova : SImpleBase
+        {
+            public string Surname { get; set; }
+            public string Name { get; set; }
+        }
+        """;
+
+        // Act
+        var runResult = TestHelper.GeneratorDriver([source], baseReference)
+                                  .GetRunResult()
+                                  .GetSecondResult();
+        var settings = Settings();
+
+        // Assert
+        return Verify(runResult, settings).UseDirectory("Results/Classes");
+    }
+
+    [Fact]
+    public Task Nested_inheritance_property_name_across_assembly()
+    {
+        // Arrange, base assembly
+        var baseSource1 = """
+        namespace MyBaseLib.Models
+        {
+            public record MyType
+            {
+                public int ID { get; set; }
+            }
+        }
+        """;
+        var baseSource2 = """
+        using MyBaseLib.Models;
+
+        namespace MyBaseLib
+        {
+            public class SImpleBase
+            {
+                public byte[] RowVersion { get; set; } = new byte[8];
+
+                public MyType Model { get; set; }
+            }
+        }
+        """;
+
+        var timestampAssembly = TestHelper.ToReferenceFromAssembly<System.ComponentModel.DataAnnotations.TimestampAttribute>();
+        var jsonAssembly = TestHelper.ToReferenceFromAssembly<System.Text.Json.Serialization.JsonPropertyNameAttribute>();
+        var baseAssembly = TestHelper.InMemoryAssemblyCreation([baseSource1, baseSource2], "MyBaseLib", timestampAssembly, jsonAssembly);
         var baseReference = TestHelper.ToReferenceFromByteArray(baseAssembly);
 
         // Arrange, actual assembly

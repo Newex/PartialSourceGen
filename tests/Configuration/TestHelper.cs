@@ -55,12 +55,18 @@ public static class TestHelper
         return driver.RunGenerators(compilation);
     }
 
-    public static byte[] InMemoryAssemblyCreation(string sourceCode, string assemblyName, params MetadataReference[] references)
+    public static byte[] InMemoryAssemblyCreation(string[] sourceCodes, string assemblyName, params MetadataReference[] references)
     {
-        var syntaxTree = CSharpSyntaxTree.ParseText(sourceCode);
+        List<SyntaxTree> trees = [];
+        foreach (var sourceCode in sourceCodes)
+        {
+            var syntaxTree = CSharpSyntaxTree.ParseText(sourceCode);
+            trees.Add(syntaxTree);
+        }
+
         var compilation = CSharpCompilation.Create(
             assemblyName,
-            syntaxTrees: [syntaxTree],
+            syntaxTrees: trees,
             references: [
                 MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(Attribute).Assembly.Location),
