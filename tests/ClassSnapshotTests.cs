@@ -965,9 +965,3 @@ public class ClassSnapshotTests
         return Verify(runResult, settings).UseDirectory("Results/Classes");
     }
 }
-
-internal record TestObj
-{
-    [System.Text.Json.Serialization.JsonPropertyName("thePropertyName")]
-    public string Name { get; set; } = "Name";
-}
