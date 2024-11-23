@@ -133,6 +133,13 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
         List<PropertyDeclarationSyntax> syntheticProps = [];
         foreach (var prop in otherProps)
         {
+            if (node is RecordDeclarationSyntax record)
+            {
+                if (prop.Name == "EqualityContract")
+                {
+                    continue;
+                }
+            }
             var hasExcludeAttribute = prop.PropertyHasAttributeWithTypeName(Names.ExcludePartial);
             if (hasExcludeAttribute)
             {
