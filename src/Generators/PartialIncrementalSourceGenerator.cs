@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 using PartialSourceGen.Constants;
 using PartialSourceGen.Helpers;
 using PartialSourceGen.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -52,17 +53,40 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
         var root = context.SemanticModel.SyntaxTree.GetRoot(token);
 
         List<IPropertySymbol> propertySymbols = [];
+        // Code copied from:
+        // https://github.com/Newex/PartialSourceGen/issues/14#issue-2307071834
+        List<PropertyDeclarationSyntax> props = [];
         for (var currentType = nameSymbol; currentType != null; currentType = currentType.BaseType)
         {
-            var propSymbols = currentType.GetMembers().OfType<IPropertySymbol>();
-            propertySymbols.AddRange(propSymbols);
+            var newProps = currentType.GetMembers()
+                .OfType<IPropertySymbol>();
+
+            props.AddRange(newProps.SelectMany(s => s.DeclaringSyntaxReferences)
+                .Select(s => s.GetSyntax())
+                .OfType<PropertyDeclarationSyntax>());
+
+            propertySymbols.AddRange(newProps.ToList());
         }
 
-        var props = propertySymbols
-            .SelectMany(p => p.DeclaringSyntaxReferences)
-            .Select(r => r.GetSyntax(token))
-            .OfType<PropertyDeclarationSyntax>()
-            .ToList();
+        List<IPropertySymbol> filterSymbols = [];
+        foreach (var propSymbol in propertySymbols)
+        {
+            var found = false;
+            foreach (var prop in props)
+            {
+                var propName = propSymbol.Name;
+                var otherName = prop.Identifier.Text;
+                if (otherName == propName)
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                filterSymbols.Add(propSymbol);
+            }
+        }
 
         var name = nameSymbol.Name;
         var givenName = context.GetPartialClassName();
@@ -81,7 +105,7 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             root,
             node,
             [.. props],
-            propertySymbols
+            filterSymbols
         );
     }
 
@@ -101,25 +125,61 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
              root,
              node,
              originalProps,
-             propertySymbols) = source.GetValueOrDefault();
+             otherProps) = source.GetValueOrDefault();
         List<PropertyDeclarationSyntax> optionalProps = [];
         Dictionary<string, MemberDeclarationSyntax> propMembers = [];
         var hasPropertyInitializer = false;
 
-        foreach (var propSymbol in propertySymbols)
+        List<PropertyDeclarationSyntax> syntheticProps = [];
+        foreach (var prop in otherProps)
         {
-            var hasExcludeAttribute = propSymbol.PropertyHasAttributeWithTypeName(Names.ExcludePartial);
+            var hasExcludeAttribute = prop.PropertyHasAttributeWithTypeName(Names.ExcludePartial);
             if (hasExcludeAttribute)
             {
                 continue;
             }
 
-            var propName = propSymbol.Name.Trim();
-            var hasIncludeInitializer = propSymbol.PropertyHasAttributeWithTypeName(Names.IncludeInitializer);
-            var isExpression = propSymbol.HasExpressionBody();
-            var propDeclaration = SyntaxFactory.ParseTypeName(propSymbol.Type.ToString());
-            var prop = SyntaxFactory.PropertyDeclaration(propDeclaration, propSymbol.Name)
-                    .WithModifiers(propSymbol.CreateModifiers());
+            var hasSetter = prop.SetMethod is not null;
+            var hasGetter = prop.GetMethod is not null;
+            var propAccess = prop.DeclaredAccessibility switch
+            {
+                Accessibility.NotApplicable => throw new NotSupportedException(),
+                Accessibility.Private => "private",
+                Accessibility.ProtectedAndInternal => "protected internal",
+                Accessibility.Protected => "protected",
+                Accessibility.Internal => "internal",
+                Accessibility.ProtectedOrInternal => throw new NotSupportedException(),
+                Accessibility.Public => "public",
+                _ => throw new NotImplementedException(),
+            };
+
+            var propType = $"{prop.Type}".TrimEnd('?');
+
+            // Only empty get set
+            var getter = hasGetter ? "get;" : "";
+            var setter = hasSetter ? "set;" : "";
+            var getset = $"{getter} {setter}".Trim();
+
+            var propTxt = $"{propAccess} {propType}? {prop.Name} {{ {getset} }}";
+
+            var propDecl = SyntaxFactory.ParseMemberDeclaration(propTxt, 0);
+            if (propDecl is not null && propDecl is PropertyDeclarationSyntax propertyDeclarationSyntax)
+            {
+                optionalProps.Add(propertyDeclarationSyntax);
+            }
+        }
+
+        foreach (var prop in originalProps)
+        {
+            var hasExcludeAttribute = prop.PropertyHasAttributeWithTypeName(semanticModel, Names.ExcludePartial);
+            if (hasExcludeAttribute)
+            {
+                continue;
+            }
+
+            var propName = prop.Identifier.ValueText.Trim();
+            var hasIncludeInitializer = prop.PropertyHasAttributeWithTypeName(semanticModel, Names.IncludeInitializer);
+            var isExpression = prop.ExpressionBody is not null;
             TypeSyntax propertyType;
             IEnumerable<SyntaxToken> modifiers = prop.Modifiers;
             if (prop.Type is NullableTypeSyntax nts)
@@ -128,17 +188,18 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             }
             else
             {
-                var hasRequiredAttribute = propSymbol.PropertyHasAttributeWithTypeName("System.ComponentModel.DataAnnotations.RequiredAttribute");
-                var keepType = hasIncludeInitializer || (includeRequired && (hasRequiredAttribute || propSymbol.IsRequired));
-                var forceNull = propSymbol.PropertyHasAttributeWithTypeName(Names.ForceNull);
-                var hasNewType = propSymbol.PropertyHasAttributeWithTypeName(Names.PartialType);
-
+                var keepType = false;
+                var hasRequiredAttribute = false;
                 var hasRequiredModifier = false;
                 if (includeRequired)
                 {
                     hasRequiredAttribute = prop.PropertyHasAttributeWithTypeName(semanticModel, "System.ComponentModel.DataAnnotations.RequiredAttribute");
                     hasRequiredModifier = modifiers.Any(m => m.IsKind(SyntaxKind.RequiredKeyword));
                 }
+
+                keepType = hasIncludeInitializer || (includeRequired && (hasRequiredModifier || hasRequiredAttribute));
+                var forceNull = prop.PropertyHasAttributeWithTypeName(semanticModel, Names.ForceNull);
+                var hasNewType = prop.PropertyHasAttributeWithTypeName(semanticModel, Names.PartialType);
 
                 if (hasNewType && hasIncludeInitializer)
                 {

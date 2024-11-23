@@ -928,12 +928,16 @@ public class ClassSnapshotTests
             {
                 [Timestamp]
                 public byte[] RowVersion { get; set; } = new byte[8];
+
+                [System.Text.Json.Serialization.JsonPropertyName("hello")]
+                public int? Hello { get; set; }
             }
         }
         """;
 
         var timestampAssembly = TestHelper.ToReferenceFromAssembly<System.ComponentModel.DataAnnotations.TimestampAttribute>();
-        var baseAssembly = TestHelper.InMemoryAssemblyCreation(baseSource, "MyBaseLib", timestampAssembly);
+        var jsonAssembly = TestHelper.ToReferenceFromAssembly<System.Text.Json.Serialization.JsonPropertyNameAttribute>();
+        var baseAssembly = TestHelper.InMemoryAssemblyCreation(baseSource, "MyBaseLib", timestampAssembly, jsonAssembly);
         var baseReference = TestHelper.ToReferenceFromByteArray(baseAssembly);
 
         // Arrange, actual assembly
@@ -943,7 +947,7 @@ public class ClassSnapshotTests
 
         namespace MySpace;
 
-        [Partial]
+        [Partial(IncludeExtraAttributes = true)]
         public class Prova : SImpleBase
         {
             public string Surname { get; set; }
@@ -960,4 +964,10 @@ public class ClassSnapshotTests
         // Assert
         return Verify(runResult, settings).UseDirectory("Results/Classes");
     }
+}
+
+internal record TestObj
+{
+    [System.Text.Json.Serialization.JsonPropertyName("thePropertyName")]
+    public string Name { get; set; } = "Name";
 }
