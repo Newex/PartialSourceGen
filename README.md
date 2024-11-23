@@ -273,6 +273,29 @@ partial record PartialPerson
 }
 ```
 
+## Inheritance across assemblies
+A partial entity will try to inherit from all parent objects. BUT if the parent object is defined in another assembly,
+only the type and name will be copied over.
+
+Any attributes defined or initializers set, will not be included in the partial output entity.  
+An excluded property defined in another assembly will still be excluded.
+
+Any required keywords or attributes will not be copied over.
+
+| Thing | Copied | Example(s) / note |
+|-------|--------|------------|
+| Access modifier | yes | `public`, `private`|
+| Attributes | no | `[JsonPropertyName("prop")]` |
+| `ExcludePartial` | - | Is respected, and will exclude property |
+| `ForceNull` | - | All copied properties will be nullable |
+| `IncludeInitializer` | - | Is not respected |
+| `PartialReference` | - | Is not respected |
+| `PartialType` | - | Is not respected |
+| Custom setter or getter logic | no | Will only copy basic auto-getter or auto-setter |
+| Modifiers | no | `abstract` |
+
+As a rule of thumb, only the most basic source will be generated.
+
 ## Property attributes
 
 | Attribute | Short explanation |
