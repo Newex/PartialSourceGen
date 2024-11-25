@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -20,6 +21,7 @@ internal readonly record struct PartialInfo
     /// <param name="root">The syntax root node. The beginning of the source syntax node usually begins with using statements.</param>
     /// <param name="node">The syntax node. The class, struct or record under consideration.</param>
     /// <param name="properties">The enumerated properties in the node.</param>
+    /// <param name="propertySymbols">The property symbols.</param>
     public PartialInfo(
         string name,
         string? summary,
@@ -29,7 +31,9 @@ internal readonly record struct PartialInfo
         SemanticModel model,
         SyntaxNode root,
         SyntaxNode node,
-        PropertyDeclarationSyntax[] properties)
+        PropertyDeclarationSyntax[] properties,
+        List<IPropertySymbol> propertySymbols
+    )
     {
         Name = name;
         Summary = summary;
@@ -40,6 +44,7 @@ internal readonly record struct PartialInfo
         Root = root;
         Node = node;
         Properties = properties;
+        PropertySymbols = propertySymbols;
     }
 
     /// <summary>
@@ -90,6 +95,12 @@ internal readonly record struct PartialInfo
     public PropertyDeclarationSyntax[] Properties { get; }
 
     /// <summary>
+    /// The list of original properties found, including from inherited parents
+    /// across assemblies.
+    /// </summary>
+    public List<IPropertySymbol> PropertySymbols { get; }
+
+    /// <summary>
     /// Deconstructor.
     /// </summary>
     /// <param name="name">The partial entity name.</param>
@@ -101,6 +112,7 @@ internal readonly record struct PartialInfo
     /// <param name="root">The root syntax.</param>
     /// <param name="node">The node syntax.</param>
     /// <param name="properties">The list of properties.</param>
+    /// <param name="propertySymbols">The list of properties.</param>
     public void Deconstruct(
         out string name,
         out string? summary,
@@ -110,7 +122,8 @@ internal readonly record struct PartialInfo
         out SemanticModel semanticModel,
         out SyntaxNode root,
         out SyntaxNode node,
-        out PropertyDeclarationSyntax[] properties)
+        out PropertyDeclarationSyntax[] properties,
+        out List<IPropertySymbol> propertySymbols)
     {
         name = Name;
         summary = Summary;
@@ -121,5 +134,6 @@ internal readonly record struct PartialInfo
         root = Root;
         node = Node;
         properties = Properties;
+        propertySymbols = PropertySymbols;
     }
 }

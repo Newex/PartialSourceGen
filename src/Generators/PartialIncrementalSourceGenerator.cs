@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 using PartialSourceGen.Constants;
 using PartialSourceGen.Helpers;
 using PartialSourceGen.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -51,17 +52,40 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
 #endif
         var root = context.SemanticModel.SyntaxTree.GetRoot(token);
 
+        List<IPropertySymbol> propertySymbols = [];
         // Code copied from:
         // https://github.com/Newex/PartialSourceGen/issues/14#issue-2307071834
         List<PropertyDeclarationSyntax> props = [];
         for (var currentType = nameSymbol; currentType != null; currentType = currentType.BaseType)
         {
             var newProps = currentType.GetMembers()
-                .OfType<IPropertySymbol>()
-                .SelectMany(s => s.DeclaringSyntaxReferences)
+                .OfType<IPropertySymbol>();
+
+            props.AddRange(newProps.SelectMany(s => s.DeclaringSyntaxReferences)
                 .Select(s => s.GetSyntax())
-                .OfType<PropertyDeclarationSyntax>();
-            props.AddRange(newProps);
+                .OfType<PropertyDeclarationSyntax>());
+
+            propertySymbols.AddRange(newProps.ToList());
+        }
+
+        List<IPropertySymbol> filterSymbols = [];
+        foreach (var propSymbol in propertySymbols)
+        {
+            var found = false;
+            foreach (var prop in props)
+            {
+                var propName = propSymbol.Name;
+                var otherName = prop.Identifier.Text;
+                if (otherName == propName)
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                filterSymbols.Add(propSymbol);
+            }
         }
 
         var name = nameSymbol.Name;
@@ -80,7 +104,8 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
             context.SemanticModel,
             root,
             node,
-            [.. props]
+            [.. props],
+            filterSymbols
         );
     }
 
@@ -99,10 +124,57 @@ public class PartialIncrementalSourceGenerator : IIncrementalGenerator
              semanticModel,
              root,
              node,
-             originalProps) = source.GetValueOrDefault();
+             originalProps,
+             otherProps) = source.GetValueOrDefault();
         List<PropertyDeclarationSyntax> optionalProps = [];
         Dictionary<string, MemberDeclarationSyntax> propMembers = [];
         var hasPropertyInitializer = false;
+
+        List<PropertyDeclarationSyntax> syntheticProps = [];
+        foreach (var prop in otherProps)
+        {
+            if (node is RecordDeclarationSyntax record)
+            {
+                if (prop.Name == "EqualityContract")
+                {
+                    continue;
+                }
+            }
+            var hasExcludeAttribute = prop.PropertyHasAttributeWithTypeName(Names.ExcludePartial);
+            if (hasExcludeAttribute)
+            {
+                continue;
+            }
+
+            var hasSetter = prop.SetMethod is not null;
+            var hasGetter = prop.GetMethod is not null;
+            var propAccess = prop.DeclaredAccessibility switch
+            {
+                Accessibility.NotApplicable => throw new NotSupportedException(),
+                Accessibility.Private => "private",
+                Accessibility.ProtectedAndInternal => "protected internal",
+                Accessibility.Protected => "protected",
+                Accessibility.Internal => "internal",
+                Accessibility.ProtectedOrInternal => throw new NotSupportedException(),
+                Accessibility.Public => "public",
+                _ => throw new NotImplementedException(),
+            };
+
+            var propType = $"{prop.Type}".TrimEnd('?');
+
+            // Only empty get set
+            var getter = hasGetter ? "get;" : "";
+            var setter = hasSetter ? "set;" : "";
+            var getset = $"{getter} {setter}".Trim();
+
+            var propTxt = $"{propAccess} {propType}? {prop.Name} {{ {getset} }}";
+
+            var propDecl = SyntaxFactory.ParseMemberDeclaration(propTxt, 0);
+            if (propDecl is not null && propDecl is PropertyDeclarationSyntax propertyDeclarationSyntax)
+            {
+                optionalProps.Add(propertyDeclarationSyntax);
+            }
+        }
 
         foreach (var prop in originalProps)
         {
